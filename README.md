@@ -1,6 +1,10 @@
 # Flashcards
 
-A full-stack flashcard application built with Next.js, ASP.NET Core, and PostgreSQL.
+A web-based flashcard application designed to address limitations in existing platforms like Quizlet, AnkiWeb, and Knowt. The application enables users to create and manage flashcard decks.
+
+Built with Next.js, ASP.NET Core, and PostgreSQL.
+
+For full project details, see the [project wiki](https://github.com/cs428TAs/w2026/wiki/Flashcards).
 
 ## Prerequisites
 
