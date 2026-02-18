@@ -1,8 +1,6 @@
-namespace Flashcards.APIs.Requests.User {
+namespace Flashcards.APIs.Requests.User;
 
-    public record UpdateProfileRequest(
-        string? DisplayName,
-        string? Email
-    );
-
-}
+public record UpdateProfileRequest(
+    string? DisplayName,
+    string? Email
+);

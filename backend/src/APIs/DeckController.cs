@@ -1,12 +1,13 @@
-namespace Flashcards.APIs;
+using Microsoft.AspNetCore.Mvc;
 
+namespace Flashcards.APIs
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class DeckController : ControllerBase
+    public class DecksController : ControllerBase
     {
         [HttpGet("{id}")]
-        public IActionResult GetDeck(int id)
+        public IActionResult GetDeck(Guid id)
         {
             return Ok(new { message = $"Getting deck {id}" });
         }
@@ -18,7 +19,7 @@ namespace Flashcards.APIs;
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateDeck(int id, [FromBody] UpdateDeckRequest request)
+        public IActionResult UpdateDeck(Guid id, [FromBody] UpdateDeckRequest request)
         {
             return Ok(new { message = $"Updating deck {id} with name {request.Name}" });
         }
@@ -26,12 +27,12 @@ namespace Flashcards.APIs;
 
     public class CreateDeckRequest 
     { 
-        public string Name { get; set; } 
+        public string Name { get; set; } = string.Empty;
 
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
     } 
     public class UpdateDeckRequest 
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }
