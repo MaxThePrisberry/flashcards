@@ -60,7 +60,7 @@ For full project details, see the [project wiki](https://github.com/cs428TAs/w20
    ```
    You should see `{"status":"healthy"}`. Then open http://localhost:3000 in your browser.
 
-To stop the services, press `Ctrl+C` or run `docker compose down`.
+To stop the services, press `Ctrl+C` or run `docker compose down`. Add the `-v` flag to remove volumes (for database testing)
 
 | Service  | URL                          |
 |----------|------------------------------|
