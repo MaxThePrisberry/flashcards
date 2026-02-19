@@ -1,7 +1,10 @@
-namespace Flashcards.APIs.Responses;
+using Flashcards.APIs.DTOs.User;
+namespace Flashcards.APIs.Responses {
 
-public record AuthResponse(
-    string Token,
-    int ExpiresIn,
-    UserDto User
-);
+    public record AuthResponse(
+        string Token,
+        int ExpiresIn,
+        UserDTO User
+    );
+
+}

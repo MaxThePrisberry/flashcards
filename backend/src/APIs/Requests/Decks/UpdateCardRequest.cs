@@ -1,6 +1,11 @@
-namespace Flashcards.APIs.Requests.Decks;
+namespace Flashcards.APIs.Requests.Decks {
 
-public record UpdateCardRequest(
-    string Term,
-    string Definition
-);
+    public record UpdateCardRequest(
+        Guid DeckId,
+        Guid CardId,
+        string Term,
+        string Definition,
+        bool Delete = false
+    );
+
+}

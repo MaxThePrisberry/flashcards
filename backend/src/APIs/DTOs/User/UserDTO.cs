@@ -1,8 +1,10 @@
-namespace Flashcards.APIs.DTOs.User;
+namespace Flashcards.APIs.DTOs.User {
 
-public record UserDto(
-    Guid Id,
-    string Email,
-    string DisplayName,
-    DateTime CreatedAt
-);
+    public record UserDTO(
+        Guid userId,
+        string email,
+        string displayName,
+        DateTime createdAt
+    );
+
+}
