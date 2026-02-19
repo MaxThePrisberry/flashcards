@@ -1,10 +1,10 @@
 namespace Flashcards.APIs.DTOs.Decks {
 
-    public record DeckDetailDTO(
-        int DeckId,
+    public record DeckDetailDto(
+        Guid Id,
         string Title,
         string Description,
-        List<CardDTO> Cards,
+        List<CardDto> Cards,
         DateTime CreatedAt,
         DateTime UpdatedAt
     );
