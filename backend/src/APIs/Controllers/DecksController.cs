@@ -4,20 +4,33 @@ using Flashcards.APIs.Requests.Decks;
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Responses;
 
-namespace Flashcards.APIs {
+namespace Flashcards.APIs.Controllers {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
 
     public class DecksController : ControllerBase {
+
+        // ── Deck Endpoints ────────────────────────────────────────────────
+
         [HttpGet]
-        public ActionResult<PaginatedResponse<DeckSummaryDTO>> GetDecks([FromQuery] int page = 1, [FromQuery] int pageSize = 10) {
-            return new PaginatedResponse<DeckSummaryDTO>(new List<DeckSummaryDTO>(), page, pageSize, 0, 0);
+        public ActionResult<PaginatedResponse<DeckSummaryDTO>> GetDecks(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10
+        ) {
+            return new PaginatedResponse<DeckSummaryDTO>(
+                new List<DeckSummaryDTO>(),
+                page,
+                pageSize,
+                0,
+                0
+            );
         }
 
         [HttpPost]
-        public ActionResult<DeckDetailDTO> CreateDeck([FromBody] CreateDeckRequest request) {
-            return CreatedAtAction(nameof(GetDeck), new { deckid = Guid.NewGuid() }, new DeckDetailDTO(Guid.NewGuid(), request.Title, request.Description, request.Cards.Select(c => new CardDTO(c.CardId, c.Term, c.Definition, 0)).ToList(), DateTime.UtcNow, DateTime.UtcNow));
+        public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
+            var userID = //JWT
+            var deck = 
         }
 
         [HttpGet("{deckid}")]
@@ -27,7 +40,11 @@ namespace Flashcards.APIs {
 
         [HttpPut("{deckid}")]
         public ActionResult<DeckDetailDTO> UpdateDeck(Guid deckid, [FromBody] UpdateDeckRequest request) {
-            return new DeckDetailDTO(deckid, request.Title, request.Description, request.Cards.Select(c => new CardDTO(c.CardId, c.Term, c.Definition, 0)).ToList(), DateTime.UtcNow, DateTime.UtcNow);
+            var cards = request.Cards
+                .Select(c => new CardDTO(c.CardId, c.Term, c.Definition, 0))
+                .ToList();
+
+            return new DeckDetailDTO(deckid, request.Title, request.Description, cards, DateTime.UtcNow, DateTime.UtcNow);
         }
 
         [HttpDelete("{deckid}")]
@@ -35,9 +52,15 @@ namespace Flashcards.APIs {
             return NoContent();
         }
 
+        // ── Card Endpoints ────────────────────────────────────────────────
+
         [HttpPost("{deckid}/cards")]
         public ActionResult<CardDTO> CreateCard(Guid deckid, [FromBody] CreateCardRequest request) {
-            return CreatedAtAction(nameof(GetCard), new { deckid = deckid, cardId = Guid.NewGuid() }, new CardDTO(Guid.NewGuid(), request.Term, request.Definition, 0));
+            var newCardId = Guid.NewGuid();
+
+            return CreatedAtAction(nameof(GetCard), new { deckid = deckid, cardId = newCardId },
+                new CardDTO(newCardId, request.Term, request.Definition, 0)
+            );
         }
 
         [HttpGet("{deckid}/cards/{cardId}")]
