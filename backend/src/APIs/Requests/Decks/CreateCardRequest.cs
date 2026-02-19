@@ -1,6 +1,10 @@
-namespace Flashcards.APIs.Requests.Decks;
+namespace Flashcards.APIs.Requests.Decks {
 
-public record CreateCardRequest(
-    string Term,
-    string Definition
-);
+    public record CreateCardRequest(
+        Guid DeckId,
+        Guid CardId,
+        string Term,
+        string Definition
+    );
+
+}

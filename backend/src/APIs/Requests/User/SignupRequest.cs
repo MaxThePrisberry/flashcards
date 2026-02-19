@@ -1,7 +1,9 @@
-namespace Flashcards.APIs.Requests.User;
+namespace Flashcards.APIs.Requests.User {
 
-public record SignupRequest(
-    string Email { get; set; } = string.Empty;
-    string Password { get; set; } = string.Empty;
-    string DisplayName { get; set; } = string.Empty;
-);
+    public record SignupRequest(
+        string Email,
+        string Password,
+        string DisplayName
+    );
+
+}

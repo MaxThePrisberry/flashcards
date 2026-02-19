@@ -1,6 +1,8 @@
-namespace Flashcards.APIs.Requests.User;
+namespace Flashcards.APIs.Requests.User {
 
-public record ChangePasswordRequest(
-    string CurrentPassword,
-    string NewPassword
-);
+    public record ChangePasswordRequest(
+        string CurrentPassword,
+        string NewPassword
+    );
+
+}
