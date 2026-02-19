@@ -1,7 +1,7 @@
 namespace Flashcards.APIs.Requests.Decks {
 
     public record UpdateDeckRequest(
-        Guid DeckId,
+        int DeckId,
         string Title,
         string? Description,
         List<UpdateCardRequest> Cards
