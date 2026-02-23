@@ -3,6 +3,18 @@
 import { useState } from "react";
 import { login } from "../lib/api/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,38 +41,58 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Login</h1>
+    <main className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardDescription>
+            Enter your credentials to access your account
+          </CardDescription>
+        </CardHeader>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-          maxWidth: "300px",
-        }}
-      >
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-        <button type="submit">Login</button>
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-      </form>
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="justify-center">
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="text-primary underline underline-offset-4">
+              Register
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </main>
   );
 }

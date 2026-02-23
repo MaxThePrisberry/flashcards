@@ -3,6 +3,18 @@
 import { useState } from "react";
 import { signup } from "../lib/api/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -30,46 +42,70 @@ export default function RegisterPage() {
   }
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Register</h1>
+    <main className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">Register</CardTitle>
+          <CardDescription>
+            Create an account to start studying
+          </CardDescription>
+        </CardHeader>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-          maxWidth: "300px",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Display Name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          required
-        />
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                type="text"
+                placeholder="Your name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+              />
+            </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-        <button type="submit">Register</button>
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-      </form>
+            <Button type="submit" className="w-full">
+              Register
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="justify-center">
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary underline underline-offset-4">
+              Login
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </main>
   );
 }
