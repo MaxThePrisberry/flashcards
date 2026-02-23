@@ -2,7 +2,7 @@ using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Requests.Decks;
 using Microsoft.EntityFrameworkCore;
 
-namespace Flashcards.APIs.Services.Deck {
+namespace Flashcards.APIs.Services.Decks {
     public class CreateDeckService {
         private readonly AppDbContext _dbContext;
 
@@ -10,7 +10,7 @@ namespace Flashcards.APIs.Services.Deck {
             _dbContext = dbContext;
         }
 
-        public async Task<DeckDetailDto> ExecuteAsync(CreateDeckRequest request, Guid userId) {
+        public async Task<DeckDetailDTO> ExecuteAsync(CreateDeckRequest request, Guid userId) {
             // Create and save the deck
             var deck = new Deck {
                 UserId = userId,
@@ -68,14 +68,14 @@ namespace Flashcards.APIs.Services.Deck {
             await _dbContext.SaveChangesAsync(); // one trip for all pairs
 
             // Build card DTOs from the saved pairs
-            var cardDtos = pairs.Select((pair, i) => new CardDto(
+            var cardDtos = pairs.Select((pair, i) => new CardDTO(
                 pair.PairId,
                 request.Cards[i].Term,
                 request.Cards[i].Definition,
                 i
             )).ToList();
 
-            return new DeckDetailDto(
+            return new DeckDetailDTO(
                 deck.DeckId,
                 deck.Title,
                 deck.Description,

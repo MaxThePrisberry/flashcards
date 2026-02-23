@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Flashcards.APIs.Requests.Decks;
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Responses;
-using Flashcards.APIs.Services.Deck;
+using Flashcards.APIs.Services.Decks;
 using System.Security.Claims;
 
 namespace Flashcards.APIs.Controllers {
@@ -21,12 +21,12 @@ namespace Flashcards.APIs.Controllers {
         // ── Deck Endpoints ────────────────────────────────────────────────
 
         [HttpGet]
-        public ActionResult<PaginatedResponse<DeckSummaryDto>> GetDecks(
+        public ActionResult<PaginatedResponse<DeckSummaryDTO>> GetDecks(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10
         ) {
-            return new PaginatedResponse<DeckSummaryDto>(
-                new List<DeckSummaryDto>(),
+            return new PaginatedResponse<DeckSummaryDTO>(
+                new List<DeckSummaryDTO>(),
                 page,
                 pageSize,
                 0,
@@ -35,7 +35,7 @@ namespace Flashcards.APIs.Controllers {
         }
 
         [HttpPost]
-        public async Task<ActionResult<DeckDetailDto>> CreateDeck([FromBody] CreateDeckRequest request) {
+        public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId)) {
                 return Unauthorized(new { message = "Invalid user ID" });

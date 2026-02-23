@@ -1,5 +1,5 @@
 using Flashcards.APIs;
-using Flashcards.APIs.Services.Deck;
+using Flashcards.APIs.Services.Decks;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

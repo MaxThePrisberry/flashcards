@@ -2,7 +2,7 @@ using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Requests.Decks;
 using Microsoft.EntityFrameworkCore;
 
-namespace Flashcards.APIs.Services.Deck {
+namespace Flashcards.APIs.Services.Decks {
     public class UpdateDeckService {
         private readonly AppDbContext _dbContext;
 
@@ -10,7 +10,7 @@ namespace Flashcards.APIs.Services.Deck {
             _dbContext = dbContext;
         }
 
-        public async Task<DeckDetailDto> ExecuteAsync(UpdateDeckRequest request, Guid userId) {
+        public async Task<DeckDetailDTO> ExecuteAsync(UpdateDeckRequest request, Guid userId) {
             // Load deck with existing pairs and items
             var deck = await _dbContext.Decks
                 .Include(d => d.Pairs)
@@ -94,9 +94,9 @@ namespace Flashcards.APIs.Services.Deck {
             await _dbContext.SaveChangesAsync(); // one trip for all pairs
 
             // Build card DTOs from the saved pairs
-            var cardDtos = new List<CardDto>();
+            var cardDtos = new List<CardDTO>();
             for (int i = 0; i < pairs.Count; i++) {
-                cardDtos.Add(new CardDto(
+                cardDtos.Add(new CardDTO(
                     pairs[i].PairId,
                     termItems[i].Value,
                     defItems[i].Value,
@@ -104,7 +104,7 @@ namespace Flashcards.APIs.Services.Deck {
                 ));
             }
 
-            return new DeckDetailDto(
+            return new DeckDetailDTO(
                 deck.DeckId,
                 deck.Title,
                 deck.Description,
