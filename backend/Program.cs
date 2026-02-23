@@ -6,6 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Add Swagger/OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 // Register DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -24,6 +28,10 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Enable Swagger
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors();
 
