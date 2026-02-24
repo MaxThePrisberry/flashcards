@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace Flashcards.APIs.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    // [Authorize]  // TEMP: Commented out for testing without auth
 
     public class DecksController : ControllerBase {
         private readonly DeckService _deckService;
@@ -35,14 +35,26 @@ namespace Flashcards.APIs.Controllers {
         // }
 
         [HttpPost]
-        public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId)) {
-                return Unauthorized(new { message = "Invalid user ID" });
-            }
+        public ActionResult<DeckDetailDTO> CreateDeck([FromBody] CreateDeckRequest request) {
+            // TEMP: Mock response for testing without database
+            var mockDeckId = Guid.NewGuid();
+            var mockCards = request.Cards.Select((card, index) => new CardDTO(
+                Guid.NewGuid(),
+                card.Term,
+                card.Definition,
+                index
+            )).ToList();
 
-            var result = await _deckService.CreateAsync(request, userId);
-            return CreatedAtAction(nameof(GetDeck), new { deckid = result.Id }, result);
+            var mockDeck = new DeckDetailDTO(
+                mockDeckId,
+                request.Title,
+                request.Description ?? "",
+                mockCards,
+                DateTime.UtcNow,
+                DateTime.UtcNow
+            );
+
+            return Ok(mockDeck);
         }
 
         // [HttpGet("{deckid}")]
