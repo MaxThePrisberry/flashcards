@@ -1,24 +1,36 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Flashcards.APIs.Requests.User;
-using Flashcards.APIs.DTOs.User;
 using Flashcards.APIs.Responses;
+using Flashcards.APIs.Services.Auth;
 
-namespace Flashcards.APIs {
+namespace Flashcards.APIs.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
-
     public class UserController : ControllerBase {
-        [HttpGet]
+        private readonly AuthService _authService;
 
-        public ActionResult<UserDTO> GetUser() {
-            return new UserDTO(
-                userId: Guid.NewGuid(),
-                email: "",
-                displayName: "",
-                createdAt: DateTime.UtcNow
-            );
+        public UserController(AuthService authService) {
+            _authService = authService;
+        }
+
+        [HttpPost("signup")]
+        public async Task<ActionResult<AuthResponse>> Signup([FromBody] SignupRequest request) {
+            try {
+                var result = await _authService.SignupAsync(request);
+                return Ok(result);
+            } catch (Exception ex) {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request) {
+            try {
+                var result = await _authService.LoginAsync(request);
+                return Ok(result);
+            } catch (Exception ex) {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

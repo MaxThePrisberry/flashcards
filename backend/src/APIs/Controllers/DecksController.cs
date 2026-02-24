@@ -12,27 +12,27 @@ namespace Flashcards.APIs.Controllers {
     [Authorize]
 
     public class DecksController : ControllerBase {
-        private readonly CreateDeckService _createDeckService;
+        private readonly DeckService _deckService;
 
-        public DecksController(CreateDeckService createDeckService) {
-            _createDeckService = createDeckService;
+        public DecksController(DeckService deckService) {
+            _deckService = deckService;
         }
 
         // ── Deck Endpoints ────────────────────────────────────────────────
 
-        [HttpGet]
-        public ActionResult<PaginatedResponse<DeckSummaryDTO>> GetDecks(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10
-        ) {
-            return new PaginatedResponse<DeckSummaryDTO>(
-                new List<DeckSummaryDTO>(),
-                page,
-                pageSize,
-                0,
-                0
-            );
-        }
+        // [HttpGet]
+        // public ActionResult<PaginatedResponse<DeckSummaryDTO>> GetDecks(
+        //     [FromQuery] int page = 1,
+        //     [FromQuery] int pageSize = 10
+        // ) {
+        //     return new PaginatedResponse<DeckSummaryDTO>(
+        //         new List<DeckSummaryDTO>(),
+        //         page,
+        //         pageSize,
+        //         0,
+        //         0
+        //     );
+        // }
 
         [HttpPost]
         public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
@@ -41,23 +41,23 @@ namespace Flashcards.APIs.Controllers {
                 return Unauthorized(new { message = "Invalid user ID" });
             }
 
-            var result = await _createDeckService.ExecuteAsync(request, userId);
+            var result = await _deckService.CreateAsync(request, userId);
             return CreatedAtAction(nameof(GetDeck), new { deckid = result.Id }, result);
         }
 
-        [HttpGet("{deckid}")]
-        public ActionResult<DeckDetailDTO> GetDeck(Guid deckid) {
-            return new DeckDetailDTO(deckid, "Title", "Description", new List<CardDTO>(), DateTime.UtcNow, DateTime.UtcNow);
-        }
+        // [HttpGet("{deckid}")]
+        // public ActionResult<DeckDetailDTO> GetDeck(Guid deckid) {
+        //     return new DeckDetailDTO(deckid, "Title", "Description", new List<CardDTO>(), DateTime.UtcNow, DateTime.UtcNow);
+        // }
 
-        [HttpPut("{deckid}")]
-        public ActionResult<DeckDetailDTO> UpdateDeck(Guid deckid, [FromBody] UpdateDeckRequest request) {
-            var cards = request.Cards
-                .Select(c => new CardDTO(c.CardId, c.Term, c.Definition, 0))
-                .ToList();
+        // [HttpPut("{deckid}")]
+        // public ActionResult<DeckDetailDTO> UpdateDeck(Guid deckid, [FromBody] UpdateDeckRequest request) {
+        //     var cards = request.Cards
+        //         .Select(c => new CardDTO(c.CardId, c.Term, c.Definition, 0))
+        //         .ToList();
 
-            return new DeckDetailDTO(deckid, request.Title, request.Description, cards, DateTime.UtcNow, DateTime.UtcNow);
-        }
+        //     return new DeckDetailDTO(deckid, request.Title, request.Description, cards, DateTime.UtcNow, DateTime.UtcNow);
+        // }
 
     }
 }
