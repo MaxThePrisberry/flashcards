@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace Flashcards.APIs.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    // [Authorize]  // TEMP: Commented out for testing without auth
+    [Authorize]
 
     public class DecksController : ControllerBase {
         private readonly DeckService _deckService;
@@ -18,7 +18,44 @@ namespace Flashcards.APIs.Controllers {
             _deckService = deckService;
         }
 
-        // ── Deck Endpoints ────────────────────────────────────────────────
+        ── Deck Endpoints ────────────────────────────────────────────────
+
+        [HttpPost]
+        public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId)) {
+                return Unauthorized(new { message = "Invalid user ID" });
+            }
+
+            var result = await _deckService.CreateAsync(request, userId);
+            return CreatedAtAction(nameof(GetDeck), new { deckid = result.Id }, result);
+
+            // MOCK VERSION (for testing without database):
+            // var mockDeckId = Guid.NewGuid();
+            // var mockCards = request.Cards.Select((card, index) => new CardDTO(
+            //     Guid.NewGuid(),
+            //     card.Term,
+            //     card.Definition,
+            //     index
+            // )).ToList();
+            //
+            // var mockDeck = new DeckDetailDTO(
+            //     mockDeckId,
+            //     request.Title,
+            //     request.Description ?? "",
+            //     mockCards,
+            //     DateTime.UtcNow,
+            //     DateTime.UtcNow
+            // );
+            //
+            // return Ok(mockDeck);
+        }
+
+        [HttpGet("{deckid}")]
+        public ActionResult<DeckDetailDTO> GetDeck(Guid deckid) {
+            return new DeckDetailDTO(deckid, "Title", "Description", new List<CardDTO>(), DateTime.UtcNow, DateTime.UtcNow);
+        }
+
 
         // [HttpGet]
         // public ActionResult<PaginatedResponse<DeckSummaryDTO>> GetDecks(
@@ -32,34 +69,6 @@ namespace Flashcards.APIs.Controllers {
         //         0,
         //         0
         //     );
-        // }
-
-        [HttpPost]
-        public ActionResult<DeckDetailDTO> CreateDeck([FromBody] CreateDeckRequest request) {
-            // TEMP: Mock response for testing without database
-            var mockDeckId = Guid.NewGuid();
-            var mockCards = request.Cards.Select((card, index) => new CardDTO(
-                Guid.NewGuid(),
-                card.Term,
-                card.Definition,
-                index
-            )).ToList();
-
-            var mockDeck = new DeckDetailDTO(
-                mockDeckId,
-                request.Title,
-                request.Description ?? "",
-                mockCards,
-                DateTime.UtcNow,
-                DateTime.UtcNow
-            );
-
-            return Ok(mockDeck);
-        }
-
-        // [HttpGet("{deckid}")]
-        // public ActionResult<DeckDetailDTO> GetDeck(Guid deckid) {
-        //     return new DeckDetailDTO(deckid, "Title", "Description", new List<CardDTO>(), DateTime.UtcNow, DateTime.UtcNow);
         // }
 
         // [HttpPut("{deckid}")]
