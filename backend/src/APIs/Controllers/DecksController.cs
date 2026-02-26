@@ -18,7 +18,7 @@ namespace Flashcards.APIs.Controllers {
             _deckService = deckService;
         }
 
-        ── Deck Endpoints ────────────────────────────────────────────────
+        // ── Deck Endpoints ────────────────────────────────────────────────
 
         [HttpPost]
         public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
