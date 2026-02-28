@@ -18,7 +18,10 @@ builder.Services.AddControllers()
             var details = context.ModelState
                 .Where(e => e.Value?.Errors.Count > 0)
                 .ToDictionary(
-                    e => char.ToLowerInvariant(e.Key[0]) + e.Key[1..],
+                    e => string.IsNullOrEmpty(e.Key)
+                        ? e.Key
+                        : string.Join(".", e.Key.Split('.').Select(
+                            seg => seg.Length > 0 ? char.ToLowerInvariant(seg[0]) + seg[1..] : seg)),
                     e => e.Value!.Errors.Select(err => err.ErrorMessage).ToArray()
                 );
             var response = new ErrorResponse("validation_error", "One or more fields are invalid.", details);
