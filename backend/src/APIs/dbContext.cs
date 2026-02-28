@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Flashcards.APIs.Entities;
 
 public class AppDbContext : DbContext
 {

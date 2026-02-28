@@ -1,6 +1,7 @@
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Requests.Decks;
 using Microsoft.EntityFrameworkCore;
+using Flashcards.APIs.Entities;
 
 namespace Flashcards.APIs.Services.Decks {
     public class DeckService {
@@ -22,8 +23,8 @@ namespace Flashcards.APIs.Services.Decks {
             await _dbContext.SaveChangesAsync();
 
             // Look up CardTypes for term and definition
-            var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "term");
-            var defType  = await _dbContext.Types.FirstAsync(t => t.TypeName == "definition");
+            var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
+            var defType  = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
 
             // Build all items first and store them so we can reference their IDs for pairs
             var termItems = new List<Item>();
@@ -116,8 +117,8 @@ namespace Flashcards.APIs.Services.Decks {
             await _dbContext.SaveChangesAsync();
 
             // Look up CardTypes
-            var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "term");
-            var defType = await _dbContext.Types.FirstAsync(t => t.TypeName == "definition");
+            var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
+            var defType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
 
             // Build all items first, filtering out cards marked for deletion
             var termItems = new List<Item>();

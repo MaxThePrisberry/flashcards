@@ -10,10 +10,10 @@ namespace Flashcards.APIs.Entities
     {
         [Key]
         [Column("deck_id")]
-        public int DeckId { get; set; }
+        public Guid DeckId { get; set; }
 
         [Column("user_id")]
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
 
         [Required]
         [MaxLength(255)]

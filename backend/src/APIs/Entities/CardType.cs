@@ -8,7 +8,7 @@ namespace Flashcards.APIs.Entities
     {
         [Key]
         [Column("type_id")]
-        public int TypeId { get; set; }
+        public Guid TypeId { get; set; }
 
         [Required]
         [MaxLength(10)]
