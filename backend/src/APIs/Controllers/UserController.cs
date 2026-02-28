@@ -37,29 +37,5 @@ namespace Flashcards.APIs.Controllers {
             // );
             // return Ok(mockResponse);
         }
-
-        [HttpPost("login")]
-        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request) {
-            try {
-                var result = await _authService.LoginAsync(request);
-                return Ok(result);
-            } catch (Exception ex) {
-                return BadRequest(new { message = ex.Message });
-            }
-
-            // MOCK VERSION (for testing without database):
-            // var mockUser = new UserDTO(
-            //     Guid.NewGuid(),
-            //     request.Email,
-            //     "Mock User",
-            //     DateTime.UtcNow
-            // );
-            // var mockResponse = new AuthResponse(
-            //     "mock-jwt-token-for-testing",
-            //     3600,
-            //     mockUser
-            // );
-            // return Ok(mockResponse);
-        }
     }
 }

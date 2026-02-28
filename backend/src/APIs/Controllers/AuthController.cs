@@ -3,51 +3,66 @@ using Microsoft.AspNetCore.Authorization;
 using Flashcards.APIs.Requests.User;
 using Flashcards.APIs.DTOs.User;
 using Flashcards.APIs.Responses;
+using Flashcards.APIs.Services.Auth;
+
 
 namespace Flashcards.APIs {
     [ApiController]
     [Route("api/[controller]")]
     // [Authorize]
-    public class authController : ControllerBase {
-        [HttpPost("signup")]
-        public Task<ActionResult<AuthResponse>> Signup(SignupRequest req) {
+    public class AuthController : ControllerBase {
+        private readonly AuthService _authService;
 
-            /* 
-            Signs up a User
-            TODO: 
-            - connect to database to store vals, retrieve ID
-            - generate real JWT token
-            */
-
-            UserDTO user = new UserDTO(Guid.NewGuid(), req.Email, req.DisplayName, DateTime.Now);
-            return Task.FromResult<ActionResult<AuthResponse>>(
-                Ok(new AuthResponse(
-                    "Test Token",
-                    3600,
-                    user
-                ))
-            );
+        public AuthController(AuthService authService) {
+            _authService = authService;
         }
 
+        [HttpPost("signup")]
+        public async Task<ActionResult<AuthResponse>> Signup([FromBody] SignupRequest request) {
+            try {
+                var result = await _authService.SignupAsync(request);
+                return Ok(result);
+            } catch (Exception ex) {
+                return BadRequest(new { message = ex.Message });
+            }
+
+            // MOCK VERSION (for testing without database):
+            // var mockUser = new UserDTO(
+            //     Guid.NewGuid(),
+            //     request.Email,
+            //     request.DisplayName,
+            //     DateTime.UtcNow
+            // );
+            // var mockResponse = new AuthResponse(
+            //     "mock-jwt-token-for-testing",
+            //     3600,
+            //     mockUser
+            // );
+            // return Ok(mockResponse);
+        }
 
         [HttpPost("login")]
-        public Task<ActionResult<AuthResponse>> Login(LoginRequest req) {
+        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request) {
+            try {
+                var result = await _authService.LoginAsync(request);
+                return Ok(result);
+            } catch (Exception ex) {
+                return BadRequest(new { message = ex.Message });
+            }
 
-            /* 
-            Logs in a User
-            TODO:
-            - connect to database to retrieve user details
-            - generate real JWT token
-            */
-
-            UserDTO user = new UserDTO(Guid.NewGuid(), req.Email, "Test Display name", DateTime.Now);
-            return Task.FromResult<ActionResult<AuthResponse>>(
-                Ok(new AuthResponse(
-                    "Test Token",
-                    3600,
-                    user
-                ))
-            );
+            // MOCK VERSION (for testing without database):
+            // var mockUser = new UserDTO(
+            //     Guid.NewGuid(),
+            //     request.Email,
+            //     "Mock User",
+            //     DateTime.UtcNow
+            // );
+            // var mockResponse = new AuthResponse(
+            //     "mock-jwt-token-for-testing",
+            //     3600,
+            //     mockUser
+            // );
+            // return Ok(mockResponse);
         }
     }
 }
