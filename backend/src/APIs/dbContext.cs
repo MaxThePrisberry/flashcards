@@ -28,10 +28,9 @@ public class AppDbContext : DbContext
             entity.Property(u => u.Username).HasColumnName("username").HasMaxLength(100).IsRequired();
             entity.Property(u => u.Email).HasColumnName("email").HasMaxLength(255).IsRequired();
             entity.Property(u => u.Password).HasColumnName("password").HasMaxLength(255).IsRequired();
-            entity.Property(u => u.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
-            entity.Property(u => u.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.Property(u => u.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").HasDefaultValueSql("NOW()");
+            entity.Property(u => u.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamptz").HasDefaultValueSql("NOW()");
 
-            entity.HasIndex(u => u.Username).IsUnique();
             entity.HasIndex(u => u.Email).IsUnique();
         });
 
@@ -46,7 +45,7 @@ public class AppDbContext : DbContext
 
             entity.HasData(new CardType
             {
-                TypeId = Guid.Parse("a1b2c3d4-0000-0000-0000-000000000001"),
+                TypeId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                 TypeName = "text"
             });
         });
@@ -60,8 +59,8 @@ public class AppDbContext : DbContext
             entity.Property(d => d.Title).HasColumnName("title").HasMaxLength(255).IsRequired();
             entity.Property(d => d.Description).HasColumnName("description");
             entity.Property(d => d.IsPublic).HasColumnName("is_public").HasDefaultValue(false);
-            entity.Property(d => d.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
-            entity.Property(d => d.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.Property(d => d.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").HasDefaultValueSql("NOW()");
+            entity.Property(d => d.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamptz").HasDefaultValueSql("NOW()");
 
             entity.HasOne(d => d.User)
                   .WithMany(u => u.Decks)
