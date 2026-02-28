@@ -13,6 +13,8 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<DeckDetailDTO> CreateAsync(CreateDeckRequest request, Guid userId) {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             var deck = new Deck {
                 UserId = userId,
                 Title = request.Title,
@@ -65,6 +67,8 @@ namespace Flashcards.APIs.Services.Decks {
             }
             await _dbContext.SaveChangesAsync();
 
+            await transaction.CommitAsync();
+
             var cardDtos = pairs.Select((pair, i) => new CardDTO(
                 pair.PairId,
                 request.Cards[i].Term,
@@ -112,6 +116,8 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<DeckDetailDTO> UpdateAsync(Guid deckId, UpdateDeckRequest request, Guid userId) {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             var deck = await _dbContext.Decks
                 .Include(d => d.Pairs)
                     .ThenInclude(p => p.Item1)
@@ -180,6 +186,8 @@ namespace Flashcards.APIs.Services.Decks {
                 pairs.Add(pair);
             }
             await _dbContext.SaveChangesAsync();
+
+            await transaction.CommitAsync();
 
             var cardDtos = new List<CardDTO>();
             for (int i = 0; i < pairs.Count; i++) {

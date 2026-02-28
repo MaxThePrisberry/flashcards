@@ -25,7 +25,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(u => u.UserId);
             entity.Property(u => u.UserId).HasColumnName("user_id");
-            entity.Property(u => u.Username).HasColumnName("username").HasMaxLength(50).IsRequired();
+            entity.Property(u => u.Username).HasColumnName("username").HasMaxLength(100).IsRequired();
             entity.Property(u => u.Email).HasColumnName("email").HasMaxLength(255).IsRequired();
             entity.Property(u => u.Password).HasColumnName("password").HasMaxLength(255).IsRequired();
             entity.Property(u => u.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");

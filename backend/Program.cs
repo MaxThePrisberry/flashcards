@@ -46,6 +46,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
         };
+        options.Events = new JwtBearerEvents {
+            OnChallenge = async context => {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                var error = new ErrorResponse("unauthorized", "Missing or invalid token.");
+                await context.Response.WriteAsJsonAsync(error);
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -74,11 +83,6 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
 app.Use(async (context, next) =>
 {
     try
@@ -93,6 +97,11 @@ app.Use(async (context, next) =>
         await context.Response.WriteAsJsonAsync(error);
     }
 });
+
+app.UseCors();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));

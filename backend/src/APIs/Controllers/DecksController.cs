@@ -43,5 +43,20 @@ namespace Flashcards.APIs.Controllers {
                 return NotFound(new ErrorResponse("not_found", ex.Message));
             }
         }
+
+        [HttpPut("{deckid}")]
+        public async Task<ActionResult<DeckDetailDTO>> UpdateDeck(Guid deckid, [FromBody] UpdateDeckRequest request) {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId)) {
+                return Unauthorized(new ErrorResponse("unauthorized", "Invalid user ID."));
+            }
+
+            try {
+                var result = await _deckService.UpdateAsync(deckid, request, userId);
+                return Ok(result);
+            } catch (NotFoundException ex) {
+                return NotFound(new ErrorResponse("not_found", ex.Message));
+            }
+        }
     }
 }
