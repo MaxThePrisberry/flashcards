@@ -20,8 +20,10 @@ namespace Flashcards.APIs.Services.Auth {
         }
 
         public async Task<AuthResponse> SignupAsync(SignupRequest request) {
+            var normalizedEmail = request.Email.ToLowerInvariant();
+
             var existingUser = await _dbContext.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email);
+                .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
             if (existingUser != null) {
                 throw new ConflictException("Email already registered.");
@@ -32,14 +34,18 @@ namespace Flashcards.APIs.Services.Auth {
             var user = new User {
                 UserId = Guid.NewGuid(),
                 Username = request.DisplayName,
-                Email = request.Email,
+                Email = normalizedEmail,
                 Password = passwordHash,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
             _dbContext.Users.Add(user);
-            await _dbContext.SaveChangesAsync();
+            try {
+                await _dbContext.SaveChangesAsync();
+            } catch (DbUpdateException) {
+                throw new ConflictException("Email already registered.");
+            }
 
             var token = GenerateJwtToken(user);
             var expiresIn = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60") * 60;
@@ -52,8 +58,10 @@ namespace Flashcards.APIs.Services.Auth {
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request) {
+            var normalizedEmail = request.Email.ToLowerInvariant();
+
             var user = await _dbContext.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email);
+                .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password)) {
                 throw new UnauthorizedException("Invalid email or password.");
