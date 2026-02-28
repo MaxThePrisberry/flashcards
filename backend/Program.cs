@@ -1,14 +1,30 @@
 using Flashcards.APIs;
+using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
 using Flashcards.APIs.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var details = context.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    e => char.ToLowerInvariant(e.Key[0]) + e.Key[1..],
+                    e => e.Value!.Errors.Select(err => err.ErrorMessage).ToArray()
+                );
+            var response = new ErrorResponse("validation_error", "One or more fields are invalid.", details);
+            return new BadRequestObjectResult(response);
+        };
+    });
 
 // Add Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -62,6 +78,21 @@ app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(context);
+    }
+    catch (Exception)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var error = new ErrorResponse("server_error", "An unexpected error occurred.");
+        await context.Response.WriteAsJsonAsync(error);
+    }
+});
 
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));

@@ -16,14 +16,14 @@ namespace Flashcards.APIs.Services.Decks {
             var deck = new Deck {
                 UserId = userId,
                 Title = request.Title,
-                Description = request.Description
+                Description = request.Description ?? ""
             };
 
             _dbContext.Decks.Add(deck);
             await _dbContext.SaveChangesAsync();
 
-            var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
-            var defType  = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
+            var textType = await _dbContext.Types.FirstOrDefaultAsync(t => t.TypeName == "text")
+                ?? throw new InvalidOperationException("Required CardType 'text' not found. Ensure the database is seeded.");
 
             var termItems = new List<Item>();
             var defItems  = new List<Item>();
@@ -31,14 +31,14 @@ namespace Flashcards.APIs.Services.Decks {
             for (int i = 0; i < request.Cards.Count; i++) {
                 var termItem = new Item {
                     DeckId   = deck.DeckId,
-                    TypeId   = termType.TypeId,
+                    TypeId   = textType.TypeId,
                     Value    = request.Cards[i].Term,
                     Position = i
                 };
 
                 var defItem = new Item {
                     DeckId   = deck.DeckId,
-                    TypeId   = defType.TypeId,
+                    TypeId   = textType.TypeId,
                     Value    = request.Cards[i].Definition,
                     Position = i
                 };
@@ -75,7 +75,7 @@ namespace Flashcards.APIs.Services.Decks {
             return new DeckDetailDTO(
                 deck.DeckId,
                 deck.Title,
-                deck.Description,
+                deck.Description ?? "",
                 cardDtos,
                 deck.CreatedAt,
                 deck.UpdatedAt
@@ -104,7 +104,7 @@ namespace Flashcards.APIs.Services.Decks {
             return new DeckDetailDTO(
                 deck.DeckId,
                 deck.Title,
-                deck.Description,
+                deck.Description ?? "",
                 cardDtos,
                 deck.CreatedAt,
                 deck.UpdatedAt
@@ -138,8 +138,8 @@ namespace Flashcards.APIs.Services.Decks {
             _dbContext.Pairs.RemoveRange(deck.Pairs);
             await _dbContext.SaveChangesAsync();
 
-            var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
-            var defType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
+            var textType = await _dbContext.Types.FirstOrDefaultAsync(t => t.TypeName == "text")
+                ?? throw new InvalidOperationException("Required CardType 'text' not found. Ensure the database is seeded.");
 
             var termItems = new List<Item>();
             var defItems = new List<Item>();
@@ -147,14 +147,14 @@ namespace Flashcards.APIs.Services.Decks {
             for (int i = 0; i < request.Cards.Count; i++) {
                 var termItem = new Item {
                     DeckId = deck.DeckId,
-                    TypeId = termType.TypeId,
+                    TypeId = textType.TypeId,
                     Value = request.Cards[i].Term,
                     Position = i
                 };
 
                 var defItem = new Item {
                     DeckId = deck.DeckId,
-                    TypeId = defType.TypeId,
+                    TypeId = textType.TypeId,
                     Value = request.Cards[i].Definition,
                     Position = i
                 };
@@ -194,7 +194,7 @@ namespace Flashcards.APIs.Services.Decks {
             return new DeckDetailDTO(
                 deck.DeckId,
                 deck.Title,
-                deck.Description,
+                deck.Description ?? "",
                 cardDtos,
                 deck.CreatedAt,
                 deck.UpdatedAt

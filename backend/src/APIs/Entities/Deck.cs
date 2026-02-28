@@ -21,7 +21,7 @@ namespace Flashcards.APIs.Entities
         public string Title { get; set; } = null!;
 
         [Column("description")]
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Column("is_public")]
         public bool IsPublic { get; set; } = false;

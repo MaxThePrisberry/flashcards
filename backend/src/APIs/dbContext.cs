@@ -43,6 +43,12 @@ public class AppDbContext : DbContext
             entity.Property(t => t.TypeName).HasColumnName("type_name").HasMaxLength(10).IsRequired();
 
             entity.HasIndex(t => t.TypeName).IsUnique();
+
+            entity.HasData(new CardType
+            {
+                TypeId = Guid.Parse("a1b2c3d4-0000-0000-0000-000000000001"),
+                TypeName = "text"
+            });
         });
 
         // ---- Deck ----
