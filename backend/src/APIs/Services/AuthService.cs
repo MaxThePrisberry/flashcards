@@ -1,6 +1,7 @@
 using Flashcards.APIs.DTOs.User;
 using Flashcards.APIs.Requests.User;
 using Flashcards.APIs.Responses;
+using Flashcards.APIs.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,18 +20,15 @@ namespace Flashcards.APIs.Services.Auth {
         }
 
         public async Task<AuthResponse> SignupAsync(SignupRequest request) {
-            // Check if user already exists
             var existingUser = await _dbContext.Users
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (existingUser != null) {
-                throw new Exception("User with this email already exists");
+                throw new ConflictException("Email already registered.");
             }
 
-            // Hash password
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            // Create user
             var user = new User {
                 UserId = Guid.NewGuid(),
                 Username = request.DisplayName,
@@ -43,9 +41,8 @@ namespace Flashcards.APIs.Services.Auth {
             _dbContext.Users.Add(user);
             await _dbContext.SaveChangesAsync();
 
-            // Generate JWT token
             var token = GenerateJwtToken(user);
-            var expiresIn = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60") * 60; // Convert to seconds
+            var expiresIn = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60") * 60;
 
             return new AuthResponse(
                 token,
@@ -55,22 +52,15 @@ namespace Flashcards.APIs.Services.Auth {
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request) {
-            // Find user by email
             var user = await _dbContext.Users
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-            if (user == null) {
-                throw new Exception("Invalid email or password");
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password)) {
+                throw new UnauthorizedException("Invalid email or password.");
             }
 
-            // Verify password
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.Password)) {
-                throw new Exception("Invalid email or password");
-            }
-
-            // Generate JWT token
             var token = GenerateJwtToken(user);
-            var expiresIn = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60") * 60; // Convert to seconds
+            var expiresIn = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60") * 60;
 
             return new AuthResponse(
                 token,

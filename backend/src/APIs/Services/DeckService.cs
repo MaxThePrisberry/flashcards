@@ -1,5 +1,6 @@
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Requests.Decks;
+using Flashcards.APIs.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Flashcards.APIs.Entities;
 
@@ -12,7 +13,6 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<DeckDetailDTO> CreateAsync(CreateDeckRequest request, Guid userId) {
-            // Create and save the deck
             var deck = new Deck {
                 UserId = userId,
                 Title = request.Title,
@@ -22,11 +22,9 @@ namespace Flashcards.APIs.Services.Decks {
             _dbContext.Decks.Add(deck);
             await _dbContext.SaveChangesAsync();
 
-            // Look up CardTypes for term and definition
             var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
             var defType  = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
 
-            // Build all items first and store them so we can reference their IDs for pairs
             var termItems = new List<Item>();
             var defItems  = new List<Item>();
 
@@ -50,9 +48,8 @@ namespace Flashcards.APIs.Services.Decks {
                 termItems.Add(termItem);
                 defItems.Add(defItem);
             }
-            await _dbContext.SaveChangesAsync(); // one trip for all items
+            await _dbContext.SaveChangesAsync();
 
-            // Now build all pairs using the saved item IDs
             var pairs = new List<Pair>();
 
             for (int i = 0; i < request.Cards.Count; i++) {
@@ -66,9 +63,8 @@ namespace Flashcards.APIs.Services.Decks {
                 _dbContext.Pairs.Add(pair);
                 pairs.Add(pair);
             }
-            await _dbContext.SaveChangesAsync(); // one trip for all pairs
+            await _dbContext.SaveChangesAsync();
 
-            // Build card DTOs from the saved pairs
             var cardDtos = pairs.Select((pair, i) => new CardDTO(
                 pair.PairId,
                 request.Cards[i].Term,
@@ -86,29 +82,55 @@ namespace Flashcards.APIs.Services.Decks {
             );
         }
 
-        public async Task<DeckDetailDTO> UpdateAsync(UpdateDeckRequest request, Guid userId) {
-            // Load deck with existing pairs and items
+        public async Task<DeckDetailDTO> GetDeckAsync(Guid deckId, Guid userId) {
+            var deck = await _dbContext.Decks
+                .Include(d => d.Pairs.OrderBy(p => p.Position))
+                    .ThenInclude(p => p.Item1)
+                .Include(d => d.Pairs)
+                    .ThenInclude(p => p.Item2)
+                .FirstOrDefaultAsync(d => d.DeckId == deckId);
+
+            if (deck == null || deck.UserId != userId) {
+                throw new NotFoundException("Deck not found.");
+            }
+
+            var cardDtos = deck.Pairs.Select(p => new CardDTO(
+                p.PairId,
+                p.Item1.Value,
+                p.Item2.Value,
+                p.Position
+            )).ToList();
+
+            return new DeckDetailDTO(
+                deck.DeckId,
+                deck.Title,
+                deck.Description,
+                cardDtos,
+                deck.CreatedAt,
+                deck.UpdatedAt
+            );
+        }
+
+        public async Task<DeckDetailDTO> UpdateAsync(Guid deckId, UpdateDeckRequest request, Guid userId) {
             var deck = await _dbContext.Decks
                 .Include(d => d.Pairs)
                     .ThenInclude(p => p.Item1)
                 .Include(d => d.Pairs)
                     .ThenInclude(p => p.Item2)
-                .FirstOrDefaultAsync(d => d.DeckId == request.DeckId);
+                .FirstOrDefaultAsync(d => d.DeckId == deckId);
 
             if (deck == null) {
-                throw new Exception("Deck not found");
+                throw new NotFoundException("Deck not found.");
             }
 
             if (deck.UserId != userId) {
-                throw new Exception("Unauthorized");
+                throw new NotFoundException("Deck not found.");
             }
 
-            // Update deck metadata
             deck.Title = request.Title;
             deck.Description = request.Description;
             deck.UpdatedAt = DateTime.UtcNow;
 
-            // Remove all existing pairs and items
             foreach (var pair in deck.Pairs) {
                 _dbContext.Items.Remove(pair.Item1);
                 _dbContext.Items.Remove(pair.Item2);
@@ -116,33 +138,24 @@ namespace Flashcards.APIs.Services.Decks {
             _dbContext.Pairs.RemoveRange(deck.Pairs);
             await _dbContext.SaveChangesAsync();
 
-            // Look up CardTypes
             var termType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
             var defType = await _dbContext.Types.FirstAsync(t => t.TypeName == "text"); //FIXTHIS
 
-            // Build all items first, filtering out cards marked for deletion
             var termItems = new List<Item>();
             var defItems = new List<Item>();
 
             for (int i = 0; i < request.Cards.Count; i++) {
-                var cardRequest = request.Cards[i];
-
-                // Skip cards marked for deletion
-                if (cardRequest.Delete) {
-                    continue;
-                }
-
                 var termItem = new Item {
                     DeckId = deck.DeckId,
                     TypeId = termType.TypeId,
-                    Value = cardRequest.Term,
+                    Value = request.Cards[i].Term,
                     Position = i
                 };
 
                 var defItem = new Item {
                     DeckId = deck.DeckId,
                     TypeId = defType.TypeId,
-                    Value = cardRequest.Definition,
+                    Value = request.Cards[i].Definition,
                     Position = i
                 };
 
@@ -151,9 +164,8 @@ namespace Flashcards.APIs.Services.Decks {
                 termItems.Add(termItem);
                 defItems.Add(defItem);
             }
-            await _dbContext.SaveChangesAsync(); // one trip for all items
+            await _dbContext.SaveChangesAsync();
 
-            // Now build all pairs using the saved item IDs
             var pairs = new List<Pair>();
 
             for (int i = 0; i < termItems.Count; i++) {
@@ -167,9 +179,8 @@ namespace Flashcards.APIs.Services.Decks {
                 _dbContext.Pairs.Add(pair);
                 pairs.Add(pair);
             }
-            await _dbContext.SaveChangesAsync(); // one trip for all pairs
+            await _dbContext.SaveChangesAsync();
 
-            // Build card DTOs from the saved pairs
             var cardDtos = new List<CardDTO>();
             for (int i = 0; i < pairs.Count; i++) {
                 cardDtos.Add(new CardDTO(

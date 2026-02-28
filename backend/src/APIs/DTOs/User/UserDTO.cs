@@ -1,7 +1,7 @@
 namespace Flashcards.APIs.DTOs.User {
 
     public record UserDTO(
-        Guid UserId,
+        Guid Id,
         string Email,
         string DisplayName,
         DateTime CreatedAt

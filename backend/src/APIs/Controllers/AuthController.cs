@@ -1,15 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Flashcards.APIs.Requests.User;
-using Flashcards.APIs.DTOs.User;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Auth;
+using Flashcards.APIs.Exceptions;
 
-
-namespace Flashcards.APIs {
+namespace Flashcards.APIs.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    // [Authorize]
     public class AuthController : ControllerBase {
         private readonly AuthService _authService;
 
@@ -21,24 +18,10 @@ namespace Flashcards.APIs {
         public async Task<ActionResult<AuthResponse>> Signup([FromBody] SignupRequest request) {
             try {
                 var result = await _authService.SignupAsync(request);
-                return Ok(result);
-            } catch (Exception ex) {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(201, result);
+            } catch (ConflictException ex) {
+                return Conflict(new ErrorResponse("conflict", ex.Message));
             }
-
-            // MOCK VERSION (for testing without database):
-            // var mockUser = new UserDTO(
-            //     Guid.NewGuid(),
-            //     request.Email,
-            //     request.DisplayName,
-            //     DateTime.UtcNow
-            // );
-            // var mockResponse = new AuthResponse(
-            //     "mock-jwt-token-for-testing",
-            //     3600,
-            //     mockUser
-            // );
-            // return Ok(mockResponse);
         }
 
         [HttpPost("login")]
@@ -46,23 +29,9 @@ namespace Flashcards.APIs {
             try {
                 var result = await _authService.LoginAsync(request);
                 return Ok(result);
-            } catch (Exception ex) {
-                return BadRequest(new { message = ex.Message });
+            } catch (UnauthorizedException ex) {
+                return Unauthorized(new ErrorResponse("unauthorized", ex.Message));
             }
-
-            // MOCK VERSION (for testing without database):
-            // var mockUser = new UserDTO(
-            //     Guid.NewGuid(),
-            //     request.Email,
-            //     "Mock User",
-            //     DateTime.UtcNow
-            // );
-            // var mockResponse = new AuthResponse(
-            //     "mock-jwt-token-for-testing",
-            //     3600,
-            //     mockUser
-            // );
-            // return Ok(mockResponse);
         }
     }
 }
