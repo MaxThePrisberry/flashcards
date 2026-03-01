@@ -11,24 +11,25 @@ using Flashcards.APIs.Entities;
 
 namespace Flashcards.APIs.Services.Auth {
     public class AuthService {
+        private static readonly JwtSecurityTokenHandler _tokenHandler = new();
+
         private readonly AppDbContext _dbContext;
-        private readonly IConfiguration _configuration;
+        private readonly string _jwtIssuer;
+        private readonly string _jwtAudience;
+        private readonly int _expiresInMinutes;
+        private readonly SigningCredentials _signingCredentials;
 
         public AuthService(AppDbContext dbContext, IConfiguration configuration) {
             _dbContext = dbContext;
-            _configuration = configuration;
+            _jwtIssuer = configuration["Jwt:Issuer"]!;
+            _jwtAudience = configuration["Jwt:Audience"]!;
+            _expiresInMinutes = int.Parse(configuration["Jwt:ExpiresInMinutes"] ?? "60");
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!));
+            _signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         }
 
         public async Task<AuthResponse> SignupAsync(SignupRequest request) {
             var normalizedEmail = request.Email.ToLowerInvariant();
-
-            var existingUser = await _dbContext.Users
-                .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
-
-            if (existingUser != null) {
-                throw new ConflictException("Email already registered.");
-            }
-
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             var user = new User {
@@ -47,14 +48,7 @@ namespace Flashcards.APIs.Services.Auth {
                 throw new ConflictException("Email already registered.");
             }
 
-            var token = GenerateJwtToken(user);
-            var expiresIn = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60") * 60;
-
-            return new AuthResponse(
-                token,
-                expiresIn,
-                new UserDTO(user.UserId, user.Email, user.Username, user.CreatedAt)
-            );
+            return BuildAuthResponse(user);
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request) {
@@ -67,9 +61,12 @@ namespace Flashcards.APIs.Services.Auth {
                 throw new UnauthorizedException("Invalid email or password.");
             }
 
-            var token = GenerateJwtToken(user);
-            var expiresIn = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60") * 60;
+            return BuildAuthResponse(user);
+        }
 
+        private AuthResponse BuildAuthResponse(User user) {
+            var token = GenerateJwtToken(user);
+            var expiresIn = _expiresInMinutes * 60;
             return new AuthResponse(
                 token,
                 expiresIn,
@@ -78,14 +75,6 @@ namespace Flashcards.APIs.Services.Auth {
         }
 
         private string GenerateJwtToken(User user) {
-            var secret = _configuration["Jwt:Secret"];
-            var issuer = _configuration["Jwt:Issuer"];
-            var audience = _configuration["Jwt:Audience"];
-            var expiresInMinutes = int.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60");
-
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
             var claims = new[] {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
@@ -95,14 +84,14 @@ namespace Flashcards.APIs.Services.Auth {
             };
 
             var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
+                issuer: _jwtIssuer,
+                audience: _jwtAudience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expiresInMinutes),
-                signingCredentials: credentials
+                expires: DateTime.UtcNow.AddMinutes(_expiresInMinutes),
+                signingCredentials: _signingCredentials
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return _tokenHandler.WriteToken(token);
         }
     }
 }

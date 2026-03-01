@@ -4,7 +4,6 @@ using Flashcards.APIs.Requests.Decks;
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
-using Flashcards.APIs.Exceptions;
 using System.Security.Claims;
 
 namespace Flashcards.APIs.Controllers {
@@ -20,9 +19,8 @@ namespace Flashcards.APIs.Controllers {
 
         [HttpPost]
         public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId)) {
-                return Unauthorized(new ErrorResponse("unauthorized", "Invalid user ID."));
+            if (!TryGetUserId(out var userId)) {
+                return Unauthorized(new ErrorResponse(ErrorCodes.Unauthorized, "Invalid user ID."));
             }
 
             var result = await _deckService.CreateAsync(request, userId);
@@ -31,32 +29,31 @@ namespace Flashcards.APIs.Controllers {
 
         [HttpGet("{deckid}")]
         public async Task<ActionResult<DeckDetailDTO>> GetDeck(Guid deckid) {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId)) {
-                return Unauthorized(new ErrorResponse("unauthorized", "Invalid user ID."));
+            if (!TryGetUserId(out var userId)) {
+                return Unauthorized(new ErrorResponse(ErrorCodes.Unauthorized, "Invalid user ID."));
             }
 
-            try {
-                var result = await _deckService.GetDeckAsync(deckid, userId);
-                return Ok(result);
-            } catch (NotFoundException ex) {
-                return NotFound(new ErrorResponse("not_found", ex.Message));
-            }
+            var result = await _deckService.GetDeckAsync(deckid, userId);
+            return Ok(result);
         }
 
         [HttpPut("{deckid}")]
         public async Task<ActionResult<DeckDetailDTO>> UpdateDeck(Guid deckid, [FromBody] UpdateDeckRequest request) {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId)) {
-                return Unauthorized(new ErrorResponse("unauthorized", "Invalid user ID."));
+            if (!TryGetUserId(out var userId)) {
+                return Unauthorized(new ErrorResponse(ErrorCodes.Unauthorized, "Invalid user ID."));
             }
 
-            try {
-                var result = await _deckService.UpdateAsync(deckid, request, userId);
-                return Ok(result);
-            } catch (NotFoundException ex) {
-                return NotFound(new ErrorResponse("not_found", ex.Message));
+            var result = await _deckService.UpdateAsync(deckid, request, userId);
+            return Ok(result);
+        }
+
+        private bool TryGetUserId(out Guid userId) {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (claim != null && Guid.TryParse(claim, out userId)) {
+                return true;
             }
+            userId = Guid.Empty;
+            return false;
         }
     }
 }

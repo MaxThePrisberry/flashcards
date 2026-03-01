@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Flashcards.APIs.Requests.Decks {
 
-    public record UpdateCardRequest(
+    public record CardRequest(
         [Required(ErrorMessage = "Term is required.")]
         [StringLength(500, MinimumLength = 1, ErrorMessage = "Term must be between 1 and 500 characters.")]
         string Term,

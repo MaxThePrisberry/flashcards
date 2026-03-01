@@ -1,4 +1,5 @@
 using Flashcards.APIs;
+using Flashcards.APIs.Exceptions;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
 using Flashcards.APIs.Services.Auth;
@@ -24,7 +25,7 @@ builder.Services.AddControllers()
                             seg => seg.Length > 0 ? char.ToLowerInvariant(seg[0]) + seg[1..] : seg)),
                     e => e.Value!.Errors.Select(err => err.ErrorMessage).ToArray()
                 );
-            var response = new ErrorResponse("validation_error", "One or more fields are invalid.", details);
+            var response = new ErrorResponse(ErrorCodes.ValidationError, "One or more fields are invalid.", details);
             return new BadRequestObjectResult(response);
         };
     });
@@ -54,7 +55,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 context.HandleResponse();
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
-                var error = new ErrorResponse("unauthorized", "Missing or invalid token.");
+                var error = new ErrorResponse(ErrorCodes.Unauthorized, "Missing or invalid token.");
                 await context.Response.WriteAsJsonAsync(error);
             }
         };
@@ -92,11 +93,18 @@ app.Use(async (context, next) =>
     {
         await next(context);
     }
-    catch (Exception)
+    catch (Exception ex)
     {
-        context.Response.StatusCode = 500;
+        var (statusCode, errorCode) = ex switch {
+            NotFoundException => (404, ErrorCodes.NotFound),
+            ConflictException => (409, ErrorCodes.Conflict),
+            UnauthorizedException => (401, ErrorCodes.Unauthorized),
+            _ => (500, ErrorCodes.ServerError)
+        };
+        context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
-        var error = new ErrorResponse("server_error", "An unexpected error occurred.");
+        var message = statusCode == 500 ? "An unexpected error occurred." : ex.Message;
+        var error = new ErrorResponse(errorCode, message);
         await context.Response.WriteAsJsonAsync(error);
     }
 });

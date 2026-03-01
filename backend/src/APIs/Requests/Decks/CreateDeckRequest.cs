@@ -12,7 +12,7 @@ namespace Flashcards.APIs.Requests.Decks {
 
         [Required(ErrorMessage = "Cards are required.")]
         [MinLength(1, ErrorMessage = "At least one card is required.")]
-        List<CreateCardRequest> Cards
+        List<CardRequest> Cards
     );
 
 }

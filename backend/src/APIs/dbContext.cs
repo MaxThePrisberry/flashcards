@@ -45,8 +45,8 @@ public class AppDbContext : DbContext
 
             entity.HasData(new CardType
             {
-                TypeId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                TypeName = "text"
+                TypeId = CardType.TextTypeId,
+                TypeName = CardType.TextTypeName
             });
         });
 
