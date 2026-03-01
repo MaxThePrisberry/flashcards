@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Flashcards.APIs.Responses {
 
     public static class ErrorCodes {
@@ -11,6 +13,7 @@ namespace Flashcards.APIs.Responses {
     public record ErrorResponse(
         string Error,
         string Message,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         Dictionary<string, string[]>? Details = null
     );
 
