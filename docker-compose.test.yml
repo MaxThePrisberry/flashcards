@@ -1,0 +1,24 @@
+services:
+  test-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: flashcards
+      POSTGRES_PASSWORD: flashcards
+      POSTGRES_DB: flashcards_test
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flashcards -d flashcards_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=test-db;Port=5432;Database=flashcards_test;Username=flashcards;Password=flashcards"
+    depends_on:
+      test-db:
+        condition: service_healthy
