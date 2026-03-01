@@ -12,6 +12,7 @@ namespace Flashcards.APIs.Requests.Decks {
 
         [Required(ErrorMessage = "Cards are required.")]
         [MinLength(1, ErrorMessage = "At least one card is required.")]
+        [MaxLength(500, ErrorMessage = "A deck cannot have more than 500 cards.")]
         List<CardRequest> Cards
     );
 

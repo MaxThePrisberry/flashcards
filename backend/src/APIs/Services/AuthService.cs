@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Flashcards.APIs.Entities;
+using Npgsql;
 
 namespace Flashcards.APIs.Services.Auth {
     public class AuthService {
@@ -36,15 +37,13 @@ namespace Flashcards.APIs.Services.Auth {
                 UserId = Guid.NewGuid(),
                 Username = request.DisplayName,
                 Email = normalizedEmail,
-                Password = passwordHash,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Password = passwordHash
             };
 
             _dbContext.Users.Add(user);
             try {
                 await _dbContext.SaveChangesAsync();
-            } catch (DbUpdateException) {
+            } catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation }) {
                 throw new ConflictException("Email already registered.");
             }
 

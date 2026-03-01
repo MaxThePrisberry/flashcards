@@ -83,9 +83,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Enable Swagger
-app.UseSwagger();
-app.UseSwaggerUI();
+// Enable Swagger in development only
+if (app.Environment.IsDevelopment()) {
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.Use(async (context, next) =>
 {
