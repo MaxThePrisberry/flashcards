@@ -75,6 +75,20 @@ frontend/   → Next.js 15 + TypeScript
 backend/    → ASP.NET Core 8 Minimal API
 ```
 
+## Running Tests
+
+Backend integration tests run via a dedicated Docker Compose file. No local .NET SDK is required.
+
+```bash
+docker compose -f docker-compose.test.yml run --rm test
+```
+
+This spins up a test Postgres database (`flashcards_test`) and runs the xUnit test suite against it. The test configuration lives in:
+
+- `docker-compose.test.yml` — test services (test-db + test runner)
+- `Dockerfile.test` — builds the test project with the .NET 8 SDK
+- `backend.Tests/` — xUnit integration tests
+
 ## Database
 
 PostgreSQL 16 with default credentials for local development:

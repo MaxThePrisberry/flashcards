@@ -363,4 +363,148 @@ public class DecksUpdateTests
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task UpdateDeck_MissingDescription_Returns400()
+    {
+        // Arrange
+        var token = await TestHelper.GetTokenAsync(_client);
+        var deck = await TestHelper.CreateDeckAsync(_client, token);
+
+        var request = TestHelper.AuthRequest(HttpMethod.Put, $"/api/decks/{deck.Id}", token, new
+        {
+            title = "Valid Title",
+            cards = new[] { new { term = "T", definition = "D" } }
+        });
+
+        // Act
+        var response = await _client.SendAsync(request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await TestHelper.ReadAsync<ErrorResponseDto>(response);
+        body.Error.Should().Be("validation_error");
+    }
+
+    [Fact]
+    public async Task UpdateDeck_MissingCards_Returns400()
+    {
+        // Arrange
+        var token = await TestHelper.GetTokenAsync(_client);
+        var deck = await TestHelper.CreateDeckAsync(_client, token);
+
+        var request = TestHelper.AuthRequest(HttpMethod.Put, $"/api/decks/{deck.Id}", token, new
+        {
+            title = "Valid Title",
+            description = "Valid"
+        });
+
+        // Act
+        var response = await _client.SendAsync(request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await TestHelper.ReadAsync<ErrorResponseDto>(response);
+        body.Error.Should().Be("validation_error");
+    }
+
+    [Fact]
+    public async Task UpdateDeck_CardMissingTerm_Returns400()
+    {
+        // Arrange
+        var token = await TestHelper.GetTokenAsync(_client);
+        var deck = await TestHelper.CreateDeckAsync(_client, token);
+
+        var request = TestHelper.AuthRequest(HttpMethod.Put, $"/api/decks/{deck.Id}", token, new
+        {
+            title = "Valid Title",
+            description = "Valid",
+            cards = new[] { new { definition = "D" } }
+        });
+
+        // Act
+        var response = await _client.SendAsync(request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await TestHelper.ReadAsync<ErrorResponseDto>(response);
+        body.Error.Should().Be("validation_error");
+    }
+
+    [Fact]
+    public async Task UpdateDeck_CardMissingDefinition_Returns400()
+    {
+        // Arrange
+        var token = await TestHelper.GetTokenAsync(_client);
+        var deck = await TestHelper.CreateDeckAsync(_client, token);
+
+        var request = TestHelper.AuthRequest(HttpMethod.Put, $"/api/decks/{deck.Id}", token, new
+        {
+            title = "Valid Title",
+            description = "Valid",
+            cards = new[] { new { term = "T" } }
+        });
+
+        // Act
+        var response = await _client.SendAsync(request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await TestHelper.ReadAsync<ErrorResponseDto>(response);
+        body.Error.Should().Be("validation_error");
+    }
+
+    [Fact]
+    public async Task UpdateDeck_CardTermTooLong_Returns400()
+    {
+        // Arrange
+        var token = await TestHelper.GetTokenAsync(_client);
+        var deck = await TestHelper.CreateDeckAsync(_client, token);
+        var longTerm = new string('A', 501);
+
+        var request = TestHelper.AuthRequest(HttpMethod.Put, $"/api/decks/{deck.Id}", token, new
+        {
+            title = "Valid Title",
+            description = "Valid",
+            cards = new[] { new { term = longTerm, definition = "D" } }
+        });
+
+        // Act
+        var response = await _client.SendAsync(request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await TestHelper.ReadAsync<ErrorResponseDto>(response);
+        body.Error.Should().Be("validation_error");
+    }
+
+    [Fact]
+    public async Task UpdateDeck_CardDefinitionTooLong_Returns400()
+    {
+        // Arrange
+        var token = await TestHelper.GetTokenAsync(_client);
+        var deck = await TestHelper.CreateDeckAsync(_client, token);
+        var longDef = new string('A', 2001);
+
+        var request = TestHelper.AuthRequest(HttpMethod.Put, $"/api/decks/{deck.Id}", token, new
+        {
+            title = "Valid Title",
+            description = "Valid",
+            cards = new[] { new { term = "T", definition = longDef } }
+        });
+
+        // Act
+        var response = await _client.SendAsync(request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await TestHelper.ReadAsync<ErrorResponseDto>(response);
+        body.Error.Should().Be("validation_error");
+    }
 }

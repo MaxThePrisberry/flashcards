@@ -157,5 +157,9 @@ public class AuthLoginTests
         var response = await _client.SendAsync(request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await TestHelper.ReadAsync<ErrorResponseDto>(response);
+        body.Error.Should().Be("validation_error");
+        body.Message.Should().NotBeNullOrEmpty();
     }
 }
