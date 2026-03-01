@@ -1,8 +1,19 @@
+using System.Text.Json.Serialization;
+
 namespace Flashcards.APIs.Responses {
 
+    public static class ErrorCodes {
+        public const string Conflict = "conflict";
+        public const string Unauthorized = "unauthorized";
+        public const string NotFound = "not_found";
+        public const string ValidationError = "validation_error";
+        public const string ServerError = "server_error";
+    }
+
     public record ErrorResponse(
-        string Code,
+        string Error,
         string Message,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         Dictionary<string, string[]>? Details = null
     );
 

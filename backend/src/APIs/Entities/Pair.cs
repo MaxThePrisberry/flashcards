@@ -8,16 +8,16 @@ namespace Flashcards.APIs.Entities
     {
         [Key]
         [Column("pair_id")]
-        public int PairId { get; set; }
+        public Guid PairId { get; set; }
 
         [Column("deck_id")]
-        public int DeckId { get; set; }
+        public Guid DeckId { get; set; }
 
         [Column("item1_id")]
-        public int Item1Id { get; set; }
+        public Guid Item1Id { get; set; }
 
         [Column("item2_id")]
-        public int Item2Id { get; set; }
+        public Guid Item2Id { get; set; }
 
         [Column("position")]
         public int Position { get; set; } = 0;

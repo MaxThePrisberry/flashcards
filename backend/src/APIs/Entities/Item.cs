@@ -8,13 +8,13 @@ namespace Flashcards.APIs.Entities
     {
         [Key]
         [Column("item_id")]
-        public int ItemId { get; set; }
+        public Guid ItemId { get; set; }
 
         [Column("deck_id")]
-        public int DeckId { get; set; }
+        public Guid DeckId { get; set; }
 
         [Column("type_id")]
-        public int TypeId { get; set; }
+        public Guid TypeId { get; set; }
 
         [Required]
         [Column("value")]
@@ -23,10 +23,8 @@ namespace Flashcards.APIs.Entities
         [Column("position")]
         public int Position { get; set; } = 0;
 
-        [ForeignKey("DeckId")]
         public Deck Deck { get; set; } = null!;
 
-        [ForeignKey("TypeId")]
         public CardType Type { get; set; } = null!;
     }
 }

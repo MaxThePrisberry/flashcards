@@ -1,6 +1,6 @@
 namespace Flashcards.APIs.DTOs.Decks {
 
-    public record DeckSummaryDto(
+    public record DeckSummaryDTO(
         Guid Id,
         string Title,
         string Description,

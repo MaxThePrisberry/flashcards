@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+WORKDIR /src
+
+# Copy project files and restore
+COPY backend/FlashcardsApi.csproj backend/
+COPY backend.Tests/FlashcardsApi.Tests.csproj backend.Tests/
+RUN dotnet restore backend.Tests/FlashcardsApi.Tests.csproj
+
+# Copy source code
+COPY backend/ backend/
+COPY backend.Tests/ backend.Tests/
+
+# Run tests
+WORKDIR /src/backend.Tests
+ENTRYPOINT ["dotnet", "test", "--logger", "console;verbosity=detailed"]

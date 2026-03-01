@@ -3,67 +3,63 @@ using Microsoft.AspNetCore.Authorization;
 using Flashcards.APIs.Requests.Decks;
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Responses;
+using Flashcards.APIs.Services.Decks;
+using Flashcards.APIs.Exceptions;
 using System.Security.Claims;
 
 namespace Flashcards.APIs.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    // [Authorize]
-
+    [Authorize]
     public class DecksController : ControllerBase {
+        private readonly DeckService _deckService;
 
-        // ── Deck Endpoints ────────────────────────────────────────────────
+        public DecksController(DeckService deckService) {
+            _deckService = deckService;
+        }
 
         [HttpGet]
-        public ActionResult<PaginatedResponse<DeckSummaryDto>> GetDecks(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10
-        ) {
-            return new PaginatedResponse<DeckSummaryDto>(
-                new List<DeckSummaryDto>(),
-                page,
-                pageSize,
-                0,
-                0
-            );
+        public async Task<ActionResult<PaginatedResponse<DeckSummaryDTO>>> GetDecks(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 20) {
+            var userId = GetUserId();
+            var result = await _deckService.GetDecksAsync(userId, page, pageSize);
+            return Ok(result);
         }
 
         [HttpPost]
-        public async Task<ActionResult<DeckDetailDto>> CreateDeck([FromBody] CreateDeckRequest request) {
+        public async Task<ActionResult<DeckDetailDTO>> CreateDeck([FromBody] CreateDeckRequest request) {
+            var userId = GetUserId();
+            var result = await _deckService.CreateAsync(request, userId);
+            return CreatedAtAction(nameof(GetDeck), new { id = result.Id }, result);
+        }
 
-            /* 
-            Creates a Deck
-            TODO:
-            - connect to database to input deck
-            */
+        [HttpGet("{id}")]
+        public async Task<ActionResult<DeckDetailDTO>> GetDeck(Guid id) {
+            var userId = GetUserId();
+            var result = await _deckService.GetDeckAsync(id, userId);
+            return Ok(result);
+        }
 
-            List<CreateCardRequest> cards = request.Cards;
-            List<CardDto> returnCards = new List<CardDto>();
-            int position = 0;
-            foreach (var card in cards) {
-                Guid id = Guid.NewGuid();
-                string term = card.Term;
-                string definition = card.Definition;
-                CardDto dto = new CardDto(id, term, definition, position);
-                returnCards.Add(dto);
+        [HttpPut("{id}")]
+        public async Task<ActionResult<DeckDetailDTO>> UpdateDeck(Guid id, [FromBody] UpdateDeckRequest request) {
+            var userId = GetUserId();
+            var result = await _deckService.UpdateAsync(id, request, userId);
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteDeck(Guid id) {
+            var userId = GetUserId();
+            await _deckService.DeleteAsync(id, userId);
+            return NoContent();
+        }
+
+        private Guid GetUserId() {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (claim != null && Guid.TryParse(claim, out var userId)) {
+                return userId;
             }
-
-            DeckDetailDto deckDetail = new DeckDetailDto(Guid.NewGuid(), request.Title, request.Description, returnCards, DateTime.Now, DateTime.Now);
-            return Ok(deckDetail);
+            throw new UnauthorizedException("Invalid user ID.");
         }
-
-        [HttpGet("{deckid}")]
-        public ActionResult<DeckDetailDto> GetDeck(Guid deckid) {
-            return new DeckDetailDto(deckid, "Title", "Description", new List<CardDto>(), DateTime.UtcNow, DateTime.UtcNow);
-        }
-
-        [HttpPut("{deckid}")]
-        public ActionResult<DeckDetailDto> UpdateDeck(Guid deckid, [FromBody] UpdateDeckRequest request) {
-            var cards = request.Cards
-                .Select(c => new CardDto(Guid.NewGuid(), c.Term, c.Definition, 0))
-                .ToList();
-            return new DeckDetailDto(deckid, request.Title, request.Description, cards, DateTime.UtcNow, DateTime.UtcNow);
-        }
-
     }
 }
