@@ -73,11 +73,12 @@ builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("Frontend", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -111,7 +112,7 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseCors();
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
