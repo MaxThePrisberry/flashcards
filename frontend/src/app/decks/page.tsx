@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDecks } from "../lib/api/decks";
-import DeckCard from "../components/deck-card";
+import { getDecks } from "@/lib/api/decks";
+import DeckCard from "@/components/deck-card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 

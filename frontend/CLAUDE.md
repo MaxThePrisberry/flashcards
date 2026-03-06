@@ -27,4 +27,4 @@ Do **not** use Tailwind v3 patterns:
 
 ## Do Not Modify
 
-- The API layer in `src/app/lib/api/auth.ts`
+- The API layer in `src/lib/api/auth.ts`

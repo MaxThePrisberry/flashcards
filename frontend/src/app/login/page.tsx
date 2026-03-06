@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { login } from "@/app/lib/api/auth";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth-provider";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +17,8 @@ import {
 } from "@/components/ui/card";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuth();
+  useRedirectIfAuthenticated();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,20 +29,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const data = await login(email, password);
-      localStorage.setItem("token", data.token);
-      router.push("/decks");
+      await login(email, password);
     } catch {
       setError("Invalid email or password");
     }
   }
 
   return (
-    <main
-      className={cn(
-        "flex items-center justify-center min-h-[calc(100vh-4rem)] px-4",
-      )}
-    >
+    <main className="flex items-center justify-center flex-1 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
@@ -53,7 +46,7 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className={cn("flex flex-col gap-4")}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -89,10 +82,7 @@ export default function LoginPage() {
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="text-primary underline underline-offset-4"
-            >
+            <Link href="/register" className="text-primary underline underline-offset-4">
               Register
             </Link>
           </p>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import DeckForm from "../../components/deck-form";
-import { createDeck } from "@/app/lib/api/decks";
+import DeckForm from "@/components/deck-form";
+import { createDeck } from "@/lib/api/decks";
 
 export default function CreateDeckPage() {
   const router = useRouter();

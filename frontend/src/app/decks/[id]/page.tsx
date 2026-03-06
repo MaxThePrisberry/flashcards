@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDeck } from "@/app/lib/api/decks";
+import { getDeck } from "@/lib/api/decks";
 
 export default function DeckDetailPage({
   params,
