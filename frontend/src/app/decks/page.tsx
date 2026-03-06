@@ -48,16 +48,9 @@ export default function DecksPage() {
 
   return (
     <main className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Your Decks</h1>
-
-        <Button asChild>
-          <Link href="/decks/create">Create Deck</Link>
-        </Button>
-      </div>
-
       {decks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+          <h1 className="text-2xl font-semibold">Your Decks</h1>
           <Layers className="h-12 w-12 text-muted-foreground" />
           <p className="text-lg text-muted-foreground">No decks yet</p>
           <Button asChild>
@@ -66,6 +59,13 @@ export default function DecksPage() {
         </div>
       ) : (
         <>
+          <div className="flex justify-between items-center gap-4">
+            <h1 className="text-2xl font-semibold">Your Decks</h1>
+            <Button asChild>
+              <Link href="/decks/create">Create Deck</Link>
+            </Button>
+          </div>
+
           <div className="grid gap-4">
             {decks.map((deck) => (
               <DeckCard

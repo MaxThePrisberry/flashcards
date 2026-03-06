@@ -21,9 +21,6 @@ export default function Navbar() {
             <Button variant="ghost" asChild>
               <Link href="/decks">My Decks</Link>
             </Button>
-            <Button variant="ghost" asChild>
-              <Link href="/decks/create">Create Deck</Link>
-            </Button>
             <span className="text-sm text-muted-foreground">
               {user.displayName}
             </span>
