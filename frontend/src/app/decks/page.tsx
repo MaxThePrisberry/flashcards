@@ -5,26 +5,37 @@ import { getDecks } from "@/lib/api/decks";
 import DeckCard from "@/components/deck-card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { DeckDto } from "@/lib/types";
 
 export default function DecksPage() {
-  const [decks, setDecks] = useState<any[]>([]);
+  const [decks, setDecks] = useState<DeckDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       try {
         const data = await getDecks();
-        setDecks(data.items);
+        if (!cancelled) setDecks(data.items);
+      } catch {
+        if (!cancelled) setError("Failed to load decks");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     load();
+    return () => { cancelled = true; };
   }, []);
 
   if (loading) {
     return <main className="p-10">Loading decks...</main>;
+  }
+
+  if (error) {
+    return <main className="p-10 text-destructive">{error}</main>;
   }
 
   return (
@@ -39,7 +50,13 @@ export default function DecksPage() {
 
       <div className="grid gap-4">
         {decks.map((deck) => (
-          <DeckCard key={deck.id} {...deck} />
+          <DeckCard
+            key={deck.id}
+            id={deck.id}
+            title={deck.title}
+            description={deck.description}
+            cardCount={deck.cardCount}
+          />
         ))}
       </div>
     </main>

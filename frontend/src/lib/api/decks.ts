@@ -1,3 +1,5 @@
+import type { DeckDto, DeckListResponse } from "@/lib/types";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function authHeaders() {
@@ -9,12 +11,11 @@ function authHeaders() {
   };
 }
 
-// CREATE DECK
 export async function createDeck(data: {
   title: string;
   description?: string;
   cards: { term: string; definition: string }[];
-}) {
+}): Promise<DeckDto> {
   const res = await fetch(`${API_URL}/api/decks`, {
     method: "POST",
     headers: authHeaders(),
@@ -28,8 +29,7 @@ export async function createDeck(data: {
   return res.json();
 }
 
-// GET ALL DECKS
-export async function getDecks() {
+export async function getDecks(): Promise<DeckListResponse> {
   const res = await fetch(`${API_URL}/api/decks`, {
     headers: authHeaders(),
   });
@@ -41,8 +41,7 @@ export async function getDecks() {
   return res.json();
 }
 
-// GET SINGLE DECK
-export async function getDeck(id: string) {
+export async function getDeck(id: string): Promise<DeckDto> {
   const res = await fetch(`${API_URL}/api/decks/${id}`, {
     headers: authHeaders(),
   });

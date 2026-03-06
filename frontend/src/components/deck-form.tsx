@@ -27,9 +27,11 @@ export default function DeckForm({
   ]);
 
   function updateCard(index: number, field: keyof CardInput, value: string) {
-    const updated = [...cards];
-    updated[index][field] = value;
-    setCards(updated);
+    setCards((prev) =>
+      prev.map((card, i) =>
+        i === index ? { ...card, [field]: value } : card,
+      ),
+    );
   }
 
   function addCard() {

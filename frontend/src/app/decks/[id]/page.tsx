@@ -1,33 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { getDeck } from "@/lib/api/decks";
+import type { DeckDto } from "@/lib/types";
 
 export default function DeckDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const [deck, setDeck] = useState<any>(null);
+  const { id } = use(params);
+  const [deck, setDeck] = useState<DeckDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function load() {
-      const { id } = await params;
+    let cancelled = false;
 
+    async function load() {
       try {
         const data = await getDeck(id);
-        setDeck(data);
+        if (!cancelled) setDeck(data);
+      } catch {
+        if (!cancelled) setError("Failed to load deck");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     load();
-  }, [params]);
+    return () => { cancelled = true; };
+  }, [id]);
 
   if (loading) {
     return <main className="p-10">Loading deck...</main>;
+  }
+
+  if (error) {
+    return <main className="p-10 text-destructive">{error}</main>;
   }
 
   if (!deck) {
@@ -45,7 +55,7 @@ export default function DeckDetailPage({
       <div className="space-y-3">
         <h2 className="text-lg font-medium">Cards</h2>
 
-        {deck.cards?.map((card: any) => (
+        {deck.cards?.map((card) => (
           <div key={card.id} className="border rounded-lg p-4 bg-card">
             <div>
               <strong>Front:</strong> {card.term}
