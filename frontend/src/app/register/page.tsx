@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { ApiError } from "@/lib/api/api-client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,15 +25,19 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
       await signup(email, password, displayName);
-    } catch {
-      setError("Signup failed");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Signup failed");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -57,6 +62,7 @@ export default function RegisterPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -69,6 +75,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -81,13 +88,14 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button type="submit" className="w-full">
-              Register
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Creating account..." : "Register"}
             </Button>
           </form>
         </CardContent>

@@ -19,6 +19,9 @@ export default function Navbar() {
         {isLoading ? null : user ? (
           <>
             <Button variant="ghost" asChild>
+              <Link href="/decks">My Decks</Link>
+            </Button>
+            <Button variant="ghost" asChild>
               <Link href="/decks/create">Create Deck</Link>
             </Button>
             <span className="text-sm text-muted-foreground">

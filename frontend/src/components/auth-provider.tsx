@@ -31,27 +31,56 @@ export function useAuth() {
   return ctx;
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<UserDto | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const clearAuth = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  }, []);
+
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
-      try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+      if (isTokenExpired(storedToken)) {
+        clearAuth();
+      } else {
+        try {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } catch {
+          clearAuth();
+        }
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [clearAuth]);
+
+  useEffect(() => {
+    function handleUnauthorized() {
+      clearAuth();
+      router.push("/login");
+    }
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, [clearAuth, router]);
 
   const handleAuthResponse = useCallback((data: AuthResponse) => {
     setToken(data.token);
@@ -77,12 +106,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   );
 
   const logout = useCallback(() => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    clearAuth();
     router.push("/");
-  }, [router]);
+  }, [clearAuth, router]);
 
   const value = useMemo(
     () => ({ user, token, isLoading, login, signup, logout }),

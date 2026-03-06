@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { ApiError } from "@/lib/api/api-client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +24,19 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
       await login(email, password);
-    } catch {
-      setError("Invalid email or password");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Invalid email or password");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -56,6 +61,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -68,13 +74,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>

@@ -2,7 +2,9 @@
 
 import { use, useEffect, useState } from "react";
 import { getDeck } from "@/lib/api/decks";
-import type { DeckDto } from "@/lib/types";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { ApiError } from "@/lib/api/api-client";
+import type { DeckDetailDto } from "@/lib/types";
 
 export default function DeckDetailPage({
   params,
@@ -10,19 +12,24 @@ export default function DeckDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [deck, setDeck] = useState<DeckDto | null>(null);
+  const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
+  const [deck, setDeck] = useState<DeckDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     let cancelled = false;
 
     async function load() {
       try {
         const data = await getDeck(id);
         if (!cancelled) setDeck(data);
-      } catch {
-        if (!cancelled) setError("Failed to load deck");
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : "Failed to load deck");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -30,9 +37,9 @@ export default function DeckDetailPage({
 
     load();
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, isAuthenticated]);
 
-  if (loading) {
+  if (authLoading || loading) {
     return <main className="p-10">Loading deck...</main>;
   }
 
@@ -55,7 +62,7 @@ export default function DeckDetailPage({
       <div className="space-y-3">
         <h2 className="text-lg font-medium">Cards</h2>
 
-        {deck.cards?.map((card) => (
+        {deck.cards.map((card) => (
           <div key={card.id} className="border rounded-lg p-4 bg-card">
             <div>
               <strong>Front:</strong> {card.term}

@@ -2,25 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { getDecks } from "@/lib/api/decks";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { ApiError } from "@/lib/api/api-client";
 import DeckCard from "@/components/deck-card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import type { DeckDto } from "@/lib/types";
+import { Layers } from "lucide-react";
+import type { DeckSummaryDto } from "@/lib/types";
 
 export default function DecksPage() {
-  const [decks, setDecks] = useState<DeckDto[]>([]);
+  const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
+  const [decks, setDecks] = useState<DeckSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     let cancelled = false;
 
     async function load() {
       try {
         const data = await getDecks();
         if (!cancelled) setDecks(data.items);
-      } catch {
-        if (!cancelled) setError("Failed to load decks");
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : "Failed to load decks");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -28,9 +36,9 @@ export default function DecksPage() {
 
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [isAuthenticated]);
 
-  if (loading) {
+  if (authLoading || loading) {
     return <main className="p-10">Loading decks...</main>;
   }
 
@@ -48,17 +56,27 @@ export default function DecksPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {decks.map((deck) => (
-          <DeckCard
-            key={deck.id}
-            id={deck.id}
-            title={deck.title}
-            description={deck.description}
-            cardCount={deck.cardCount}
-          />
-        ))}
-      </div>
+      {decks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+          <Layers className="h-12 w-12 text-muted-foreground" />
+          <p className="text-lg text-muted-foreground">No decks yet</p>
+          <Button asChild>
+            <Link href="/decks/create">Create your first deck</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {decks.map((deck) => (
+            <DeckCard
+              key={deck.id}
+              id={deck.id}
+              title={deck.title}
+              description={deck.description}
+              cardCount={deck.cardCount}
+            />
+          ))}
+        </div>
+      )}
     </main>
   );
 }

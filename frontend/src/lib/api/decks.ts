@@ -1,54 +1,28 @@
-import type { DeckDto, DeckListResponse } from "@/lib/types";
+import type {
+  DeckDetailDto,
+  DeckSummaryDto,
+  CreateDeckRequest,
+  PaginatedResponse,
+} from "@/lib/types";
+import { apiFetch } from "@/lib/api/api-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-function authHeaders() {
-  const token = localStorage.getItem("token");
-
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-}
-
-export async function createDeck(data: {
-  title: string;
-  description?: string;
-  cards: { term: string; definition: string }[];
-}): Promise<DeckDto> {
-  const res = await fetch(`${API_URL}/api/decks`, {
+export async function createDeck(
+  data: CreateDeckRequest,
+): Promise<DeckDetailDto> {
+  const res = await apiFetch("/api/decks", {
     method: "POST",
-    headers: authHeaders(),
     body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to create deck");
-  }
-
   return res.json();
 }
 
-export async function getDecks(): Promise<DeckListResponse> {
-  const res = await fetch(`${API_URL}/api/decks`, {
-    headers: authHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to load decks");
-  }
-
+export async function getDecks(): Promise<PaginatedResponse<DeckSummaryDto>> {
+  const res = await apiFetch("/api/decks");
   return res.json();
 }
 
-export async function getDeck(id: string): Promise<DeckDto> {
-  const res = await fetch(`${API_URL}/api/decks/${id}`, {
-    headers: authHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to load deck");
-  }
-
+export async function getDeck(id: string): Promise<DeckDetailDto> {
+  const res = await apiFetch(`/api/decks/${id}`);
   return res.json();
 }
