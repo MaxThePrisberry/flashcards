@@ -61,6 +61,17 @@ export interface CreateCardRequest {
   definition: string;
 }
 
+export interface UpdateDeckRequest {
+  title: string;
+  description: string;
+  cards: UpdateCardRequest[];
+}
+
+export interface UpdateCardRequest {
+  term: string;
+  definition: string;
+}
+
 // --- Pagination ---
 
 export interface PaginatedResponse<T> {

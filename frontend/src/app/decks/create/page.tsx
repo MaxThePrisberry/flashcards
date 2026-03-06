@@ -12,14 +12,21 @@ export default function CreateDeckPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useRequireAuth();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   async function handleCreate(data: CreateDeckRequest) {
     setError(null);
+    setFieldErrors({});
     try {
       const deck = await createDeck(data);
       router.push(`/decks/${deck.id}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to create deck");
+      if (err instanceof ApiError) {
+        setError(err.message);
+        if (err.details) setFieldErrors(err.details);
+      } else {
+        setError("Failed to create deck");
+      }
     }
   }
 
@@ -30,7 +37,7 @@ export default function CreateDeckPage() {
   return (
     <main className="flex flex-col items-center px-4 py-10 gap-4">
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <DeckForm onSubmit={handleCreate} />
+      <DeckForm onSubmit={handleCreate} fieldErrors={fieldErrors} />
     </main>
   );
 }

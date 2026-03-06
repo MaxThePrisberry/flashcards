@@ -1,5 +1,5 @@
 import type { AuthResponse } from "@/lib/types";
-import { ApiError } from "@/lib/api/api-client";
+import { throwApiError } from "@/lib/api/api-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,13 +14,7 @@ export async function login(
   });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new ApiError(
-      res.status,
-      body?.error ?? "unknown_error",
-      body?.message ?? "Login failed",
-      body?.details,
-    );
+    await throwApiError(res, "Login failed");
   }
 
   return res.json();
@@ -38,13 +32,7 @@ export async function signup(
   });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new ApiError(
-      res.status,
-      body?.error ?? "unknown_error",
-      body?.message ?? "Signup failed",
-      body?.details,
-    );
+    await throwApiError(res, "Signup failed");
   }
 
   return res.json();

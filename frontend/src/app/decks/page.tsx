@@ -1,42 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getDecks } from "@/lib/api/decks";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { ApiError } from "@/lib/api/api-client";
 import DeckCard from "@/components/deck-card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Layers } from "lucide-react";
+import { Layers, ChevronLeft, ChevronRight } from "lucide-react";
 import type { DeckSummaryDto } from "@/lib/types";
 
 export default function DecksPage() {
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const [decks, setDecks] = useState<DeckSummaryDto[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const loadDecks = useCallback(async (targetPage: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getDecks(targetPage);
+      setDecks(data.items);
+      setPage(data.page);
+      setTotalPages(data.totalPages);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to load decks");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated) return;
-
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const data = await getDecks();
-        if (!cancelled) setDecks(data.items);
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof ApiError ? err.message : "Failed to load decks");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => { cancelled = true; };
-  }, [isAuthenticated]);
+    loadDecks(1);
+  }, [isAuthenticated, loadDecks]);
 
   if (authLoading || loading) {
     return <main className="p-10">Loading decks...</main>;
@@ -65,17 +65,45 @@ export default function DecksPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {decks.map((deck) => (
-            <DeckCard
-              key={deck.id}
-              id={deck.id}
-              title={deck.title}
-              description={deck.description}
-              cardCount={deck.cardCount}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4">
+            {decks.map((deck) => (
+              <DeckCard
+                key={deck.id}
+                id={deck.id}
+                title={deck.title}
+                description={deck.description}
+                cardCount={deck.cardCount}
+              />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadDecks(page - 1)}
+                disabled={page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadDecks(page + 1)}
+                disabled={page >= totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </main>
   );

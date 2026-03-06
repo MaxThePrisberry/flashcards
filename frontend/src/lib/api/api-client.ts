@@ -46,20 +46,27 @@ export async function apiFetch(
       window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     }
 
-    let body: ErrorResponse | null = null;
-    try {
-      body = await res.json();
-    } catch {
-      // response may not have a JSON body
-    }
-
-    throw new ApiError(
-      res.status,
-      body?.error ?? "unknown_error",
-      body?.message ?? `Request failed with status ${res.status}`,
-      body?.details,
-    );
+    await throwApiError(res, `Request failed with status ${res.status}`);
   }
 
   return res;
+}
+
+export async function throwApiError(
+  res: Response,
+  fallbackMessage: string,
+): Promise<never> {
+  let body: ErrorResponse | null = null;
+  try {
+    body = await res.json();
+  } catch {
+    // response may not have a JSON body
+  }
+
+  throw new ApiError(
+    res.status,
+    body?.error ?? "unknown_error",
+    body?.message ?? fallbackMessage,
+    body?.details,
+  );
 }
