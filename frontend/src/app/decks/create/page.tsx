@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import DeckForm from "@/components/deck-form";
+import type { DeckFormData } from "@/components/deck-form";
 import { createDeck } from "@/lib/api/decks";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { ApiError } from "@/lib/api/api-client";
-import type { CreateDeckRequest } from "@/lib/types";
 
 export default function CreateDeckPage() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function CreateDeckPage() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  async function handleCreate(data: CreateDeckRequest) {
+  async function handleCreate(data: DeckFormData) {
     setError(null);
     setFieldErrors({});
     try {

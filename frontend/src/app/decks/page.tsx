@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getDecks } from "@/lib/api/decks";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { ApiError } from "@/lib/api/api-client";
@@ -17,16 +17,22 @@ export default function DecksPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const loadDecks = useCallback(async (targetPage: number) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
     try {
-      const data = await getDecks(targetPage);
+      const data = await getDecks(targetPage, 20, controller.signal);
       setDecks(data.items);
       setPage(data.page);
       setTotalPages(data.totalPages);
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof ApiError ? err.message : "Failed to load decks");
     } finally {
       setLoading(false);

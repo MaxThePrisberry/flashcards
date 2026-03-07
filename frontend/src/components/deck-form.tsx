@@ -4,14 +4,19 @@ import { useState, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { CreateDeckRequest } from "@/lib/types";
-
 type CardInput = {
   id: number;
   term: string;
   definition: string;
+};
+
+export type DeckFormData = {
+  title: string;
+  description: string;
+  cards: { term: string; definition: string }[];
 };
 
 interface DeckFormProps {
@@ -24,7 +29,7 @@ interface DeckFormProps {
     cards: { term: string; definition: string }[];
   };
   fieldErrors?: Record<string, string[]>;
-  onSubmit: (data: CreateDeckRequest) => Promise<void>;
+  onSubmit: (data: DeckFormData) => Promise<void>;
 }
 
 export default function DeckForm({
@@ -110,11 +115,12 @@ export default function DeckForm({
 
           <div className="flex flex-col gap-2">
             <Label>Description</Label>
-            <Input
+            <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={1000}
               disabled={isSubmitting}
+              rows={3}
             />
             {fieldError("description") && (
               <p className="text-sm text-destructive">{fieldError("description")}</p>

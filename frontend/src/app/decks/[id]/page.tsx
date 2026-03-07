@@ -20,23 +20,22 @@ export default function DeckDetailPage({
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    let cancelled = false;
+    const controller = new AbortController();
 
     async function load() {
       try {
-        const data = await getDeck(id);
-        if (!cancelled) setDeck(data);
+        const data = await getDeck(id, controller.signal);
+        setDeck(data);
       } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof ApiError ? err.message : "Failed to load deck");
-        }
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setError(err instanceof ApiError ? err.message : "Failed to load deck");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => { controller.abort(); };
   }, [id, isAuthenticated]);
 
   if (authLoading || loading) {

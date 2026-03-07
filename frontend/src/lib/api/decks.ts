@@ -21,13 +21,14 @@ export async function createDeck(
 export async function getDecks(
   page: number = 1,
   pageSize: number = 20,
+  signal?: AbortSignal,
 ): Promise<PaginatedResponse<DeckSummaryDto>> {
-  const res = await apiFetch(`/api/decks?page=${page}&pageSize=${pageSize}`);
+  const res = await apiFetch(`/api/decks?page=${page}&pageSize=${pageSize}`, { signal });
   return res.json();
 }
 
-export async function getDeck(id: string): Promise<DeckDetailDto> {
-  const res = await apiFetch(`/api/decks/${id}`);
+export async function getDeck(id: string, signal?: AbortSignal): Promise<DeckDetailDto> {
+  const res = await apiFetch(`/api/decks/${id}`, { signal });
   return res.json();
 }
 
