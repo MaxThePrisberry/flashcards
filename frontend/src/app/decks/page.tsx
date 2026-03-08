@@ -35,13 +35,14 @@ export default function DecksPage() {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof ApiError ? err.message : "Failed to load decks");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     loadDecks(1);
+    return () => { abortRef.current?.abort(); };
   }, [isAuthenticated, loadDecks]);
 
   if (authLoading || loading) {
