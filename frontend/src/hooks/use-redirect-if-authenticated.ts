@@ -1,0 +1,14 @@
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth-provider";
+
+export function useRedirectIfAuthenticated() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/decks");
+    }
+  }, [user, isLoading, router]);
+}

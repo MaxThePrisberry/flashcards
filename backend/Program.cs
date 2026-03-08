@@ -71,13 +71,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register services
 builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<AuthService>();
+var corsOrigin = builder.Configuration["Cors:AllowedOrigin"] ?? "http://localhost:3000";
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("Frontend", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .WithOrigins(corsOrigin)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -111,7 +113,7 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseCors();
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
