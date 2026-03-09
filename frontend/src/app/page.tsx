@@ -4,9 +4,11 @@ import Link from "next/link";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
+import { useAuthModal } from "@/components/auth-modal-provider";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   return (
     <main className="flex flex-col items-center justify-center flex-1 gap-6 text-center px-4">
@@ -29,11 +31,11 @@ export default function Home() {
             </>
           ) : (
             <>
-              <Button asChild size="lg">
-                <Link href="/login">Login</Link>
+              <Button size="lg" onClick={() => openAuthModal("login")}>
+                Login
               </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/register">Register</Link>
+              <Button variant="outline" size="lg" onClick={() => openAuthModal("register")}>
+                Register
               </Button>
             </>
           )}

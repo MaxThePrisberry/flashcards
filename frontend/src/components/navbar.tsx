@@ -4,9 +4,11 @@ import Link from "next/link";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
+import { useAuthModal } from "@/components/auth-modal-provider";
 
 export default function Navbar() {
   const { user, isLoading, logout } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   return (
     <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6">
@@ -30,11 +32,11 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
+            <Button variant="ghost" onClick={() => openAuthModal("login")}>
+              Login
             </Button>
-            <Button variant="ghost" asChild>
-              <Link href="/register">Register</Link>
+            <Button variant="ghost" onClick={() => openAuthModal("register")}>
+              Register
             </Button>
           </>
         )}
