@@ -60,11 +60,29 @@ export default function AuthModal({
               </CardHeader>
 
               <CardContent>
-                {mode === "login" ? (
-                  <LoginForm onSuccess={onClose} />
-                ) : (
-                  <RegisterForm onSuccess={onClose} />
-                )}
+                <AnimatePresence mode="wait">
+                  {mode === "login" ? (
+                    <motion.div
+                      key="login"
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: 20, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <LoginForm onSuccess={onClose} />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="register"
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -20, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <RegisterForm onSuccess={onClose} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </CardContent>
 
               <CardFooter className="justify-center">
