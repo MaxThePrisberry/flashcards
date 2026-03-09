@@ -58,6 +58,7 @@ export default function Home() {
         </div>
       )}
       <AuthModal
+        key={authMode}
         isOpen={authOpen}
         onClose={() => setAuthOpen(false)}
         initialMode={authMode}

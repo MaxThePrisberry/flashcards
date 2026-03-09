@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LoginForm from "@/components/login-form";
 import RegisterForm from "@/components/register-form";
@@ -26,6 +26,9 @@ export default function AuthModal({
   initialMode?: AuthMode;
 }) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   return (
     <AnimatePresence>
