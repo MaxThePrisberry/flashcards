@@ -16,7 +16,6 @@ namespace Flashcards.APIs.Services.Decks {
 
         public async Task<PaginatedResponse<DeckSummaryDTO>> GetDecksAsync(Guid userId, int page, int pageSize) {
             // ============ DUMMY DATA FOR TESTING ============
-            // TODO: Uncomment the real implementation below when ready to connect to database
 
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 100);
@@ -108,67 +107,30 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<DeckDetailDTO> GetDeckAsync(Guid deckId, Guid userId) {
-            // ============ DUMMY DATA FOR TESTING ============
-            // TODO: Uncomment the real implementation below when ready to connect to database
+            var deck = await _dbContext.Decks
+                .AsNoTracking()
+                .Include(d => d.Pairs.OrderBy(p => p.Position))
+                    .ThenInclude(p => p.Item1)
+                .Include(d => d.Pairs)
+                    .ThenInclude(p => p.Item2)
+                .FirstOrDefaultAsync(d => d.DeckId == deckId && d.UserId == userId);
 
-            await Task.CompletedTask; // Keep async signature
-
-            // Return dummy data for specific deck IDs
-            if (deckId == Guid.Parse("11111111-1111-1111-1111-111111111111")) {
-                return new DeckDetailDTO(
-                    Id: deckId,
-                    Title: "Spanish Vocabulary",
-                    Description: "Common Spanish words and phrases",
-                    Cards: new List<CardDTO> {
-                        new CardDTO(Guid.NewGuid(), "Hola", "Hello", 0),
-                        new CardDTO(Guid.NewGuid(), "Adiós", "Goodbye", 1),
-                        new CardDTO(Guid.NewGuid(), "Gracias", "Thank you", 2)
-                    },
-                    CreatedAt: DateTime.UtcNow.AddDays(-10),
-                    UpdatedAt: DateTime.UtcNow.AddDays(-2)
-                );
-            } else if (deckId == Guid.Parse("22222222-2222-2222-2222-222222222222")) {
-                return new DeckDetailDTO(
-                    Id: deckId,
-                    Title: "JavaScript Concepts",
-                    Description: "Core JavaScript programming concepts",
-                    Cards: new List<CardDTO> {
-                        new CardDTO(Guid.NewGuid(), "Closure", "A function with access to outer scope", 0),
-                        new CardDTO(Guid.NewGuid(), "Promise", "Object representing eventual completion of async operation", 1)
-                    },
-                    CreatedAt: DateTime.UtcNow.AddDays(-7),
-                    UpdatedAt: DateTime.UtcNow.AddDays(-1)
-                );
+            if (deck == null) {
+                throw new NotFoundException("Deck not found.");
             }
 
-            throw new NotFoundException("Deck not found.");
+            var cardDtos = deck.Pairs.Select(p => new CardDTO(
+                p.PairId,
+                p.Item1.Value,
+                p.Item2.Value,
+                p.Position
+            )).ToList();
 
-            // ============ REAL IMPLEMENTATION (COMMENTED OUT) ============
-            // var deck = await _dbContext.Decks
-            //     .AsNoTracking()
-            //     .Include(d => d.Pairs.OrderBy(p => p.Position))
-            //         .ThenInclude(p => p.Item1)
-            //     .Include(d => d.Pairs)
-            //         .ThenInclude(p => p.Item2)
-            //     .FirstOrDefaultAsync(d => d.DeckId == deckId && d.UserId == userId);
-            //
-            // if (deck == null) {
-            //     throw new NotFoundException("Deck not found.");
-            // }
-            //
-            // var cardDtos = deck.Pairs.Select(p => new CardDTO(
-            //     p.PairId,
-            //     p.Item1.Value,
-            //     p.Item2.Value,
-            //     p.Position
-            // )).ToList();
-            //
-            // return ToDeckDetailDTO(deck, cardDtos);
+            return ToDeckDetailDTO(deck, cardDtos);
         }
 
         public async Task<DeckDetailDTO> UpdateAsync(Guid deckId, UpdateDeckRequest request, Guid userId) {
             // ============ DUMMY DATA FOR TESTING ============
-            // TODO: Uncomment the real implementation below when ready to connect to database
 
             // Create dummy cards from the request
             var dummyCards = new List<CardDTO>();
