@@ -15,31 +15,78 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<PaginatedResponse<DeckSummaryDTO>> GetDecksAsync(Guid userId, int page, int pageSize) {
+            // ============ DUMMY DATA FOR TESTING ============
+            // TODO: Uncomment the real implementation below when ready to connect to database
+
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 100);
 
-            var query = _dbContext.Decks
-                .AsNoTracking()
-                .Where(d => d.UserId == userId);
+            // Create some dummy decks
+            var allDummyDecks = new List<DeckSummaryDTO> {
+                new DeckSummaryDTO(
+                    Id: Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    Title: "Spanish Vocabulary",
+                    Description: "Common Spanish words and phrases",
+                    CardCount: 25,
+                    CreatedAt: DateTime.UtcNow.AddDays(-10),
+                    UpdatedAt: DateTime.UtcNow.AddDays(-2)
+                ),
+                new DeckSummaryDTO(
+                    Id: Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    Title: "JavaScript Concepts",
+                    Description: "Core JavaScript programming concepts",
+                    CardCount: 42,
+                    CreatedAt: DateTime.UtcNow.AddDays(-7),
+                    UpdatedAt: DateTime.UtcNow.AddDays(-1)
+                ),
+                new DeckSummaryDTO(
+                    Id: Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    Title: "Biology Terms",
+                    Description: "Important biology terminology",
+                    CardCount: 18,
+                    CreatedAt: DateTime.UtcNow.AddDays(-5),
+                    UpdatedAt: DateTime.UtcNow
+                )
+            };
 
-            var totalCount = await query.CountAsync();
+            var totalCount = allDummyDecks.Count;
             var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
-            var decks = await query
-                .OrderByDescending(d => d.UpdatedAt)
+            var paginatedDecks = allDummyDecks
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(d => new DeckSummaryDTO(
-                    d.DeckId,
-                    d.Title,
-                    d.Description,
-                    d.Pairs.Count,
-                    d.CreatedAt,
-                    d.UpdatedAt
-                ))
-                .ToListAsync();
+                .ToList();
 
-            return new PaginatedResponse<DeckSummaryDTO>(decks, page, pageSize, totalCount, totalPages);
+            await Task.CompletedTask; // Keep async signature
+
+            return new PaginatedResponse<DeckSummaryDTO>(paginatedDecks, page, pageSize, totalCount, totalPages);
+
+            // ============ REAL IMPLEMENTATION (COMMENTED OUT) ============
+            // page = Math.Max(1, page);
+            // pageSize = Math.Clamp(pageSize, 1, 100);
+            //
+            // var query = _dbContext.Decks
+            //     .AsNoTracking()
+            //     .Where(d => d.UserId == userId);
+            //
+            // var totalCount = await query.CountAsync();
+            // var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            //
+            // var decks = await query
+            //     .OrderByDescending(d => d.UpdatedAt)
+            //     .Skip((page - 1) * pageSize)
+            //     .Take(pageSize)
+            //     .Select(d => new DeckSummaryDTO(
+            //         d.DeckId,
+            //         d.Title,
+            //         d.Description,
+            //         d.Pairs.Count,
+            //         d.CreatedAt,
+            //         d.UpdatedAt
+            //     ))
+            //     .ToListAsync();
+            //
+            // return new PaginatedResponse<DeckSummaryDTO>(decks, page, pageSize, totalCount, totalPages);
         }
 
         public async Task<DeckDetailDTO> CreateAsync(CreateDeckRequest request, Guid userId) {
@@ -61,49 +108,109 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<DeckDetailDTO> GetDeckAsync(Guid deckId, Guid userId) {
-            var deck = await _dbContext.Decks
-                .AsNoTracking()
-                .Include(d => d.Pairs.OrderBy(p => p.Position))
-                    .ThenInclude(p => p.Item1)
-                .Include(d => d.Pairs)
-                    .ThenInclude(p => p.Item2)
-                .FirstOrDefaultAsync(d => d.DeckId == deckId && d.UserId == userId);
+            // ============ DUMMY DATA FOR TESTING ============
+            // TODO: Uncomment the real implementation below when ready to connect to database
 
-            if (deck == null) {
-                throw new NotFoundException("Deck not found.");
+            await Task.CompletedTask; // Keep async signature
+
+            // Return dummy data for specific deck IDs
+            if (deckId == Guid.Parse("11111111-1111-1111-1111-111111111111")) {
+                return new DeckDetailDTO(
+                    Id: deckId,
+                    Title: "Spanish Vocabulary",
+                    Description: "Common Spanish words and phrases",
+                    Cards: new List<CardDTO> {
+                        new CardDTO(Guid.NewGuid(), "Hola", "Hello", 0),
+                        new CardDTO(Guid.NewGuid(), "Adiós", "Goodbye", 1),
+                        new CardDTO(Guid.NewGuid(), "Gracias", "Thank you", 2)
+                    },
+                    CreatedAt: DateTime.UtcNow.AddDays(-10),
+                    UpdatedAt: DateTime.UtcNow.AddDays(-2)
+                );
+            } else if (deckId == Guid.Parse("22222222-2222-2222-2222-222222222222")) {
+                return new DeckDetailDTO(
+                    Id: deckId,
+                    Title: "JavaScript Concepts",
+                    Description: "Core JavaScript programming concepts",
+                    Cards: new List<CardDTO> {
+                        new CardDTO(Guid.NewGuid(), "Closure", "A function with access to outer scope", 0),
+                        new CardDTO(Guid.NewGuid(), "Promise", "Object representing eventual completion of async operation", 1)
+                    },
+                    CreatedAt: DateTime.UtcNow.AddDays(-7),
+                    UpdatedAt: DateTime.UtcNow.AddDays(-1)
+                );
             }
 
-            var cardDtos = deck.Pairs.Select(p => new CardDTO(
-                p.PairId,
-                p.Item1.Value,
-                p.Item2.Value,
-                p.Position
-            )).ToList();
+            throw new NotFoundException("Deck not found.");
 
-            return ToDeckDetailDTO(deck, cardDtos);
+            // ============ REAL IMPLEMENTATION (COMMENTED OUT) ============
+            // var deck = await _dbContext.Decks
+            //     .AsNoTracking()
+            //     .Include(d => d.Pairs.OrderBy(p => p.Position))
+            //         .ThenInclude(p => p.Item1)
+            //     .Include(d => d.Pairs)
+            //         .ThenInclude(p => p.Item2)
+            //     .FirstOrDefaultAsync(d => d.DeckId == deckId && d.UserId == userId);
+            //
+            // if (deck == null) {
+            //     throw new NotFoundException("Deck not found.");
+            // }
+            //
+            // var cardDtos = deck.Pairs.Select(p => new CardDTO(
+            //     p.PairId,
+            //     p.Item1.Value,
+            //     p.Item2.Value,
+            //     p.Position
+            // )).ToList();
+            //
+            // return ToDeckDetailDTO(deck, cardDtos);
         }
 
         public async Task<DeckDetailDTO> UpdateAsync(Guid deckId, UpdateDeckRequest request, Guid userId) {
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            // ============ DUMMY DATA FOR TESTING ============
+            // TODO: Uncomment the real implementation below when ready to connect to database
 
-            var deck = await GetDeckOrThrowAsync(deckId, userId);
+            // Create dummy cards from the request
+            var dummyCards = new List<CardDTO>();
+            for (int i = 0; i < request.Cards.Count; i++) {
+                dummyCards.Add(new CardDTO(
+                    Id: Guid.NewGuid(),
+                    Term: request.Cards[i].Term,
+                    Definition: request.Cards[i].Definition,
+                    Position: i
+                ));
+            }
 
-            deck.Title = request.Title;
-            deck.Description = request.Description;
-            deck.UpdatedAt = DateTime.UtcNow;
+            return new DeckDetailDTO(
+                Id: deckId,
+                Title: request.Title,
+                Description: request.Description,
+                Cards: dummyCards,
+                CreatedAt: DateTime.UtcNow.AddDays(-7), // Mock created 7 days ago
+                UpdatedAt: DateTime.UtcNow
+            );
 
-            await _dbContext.Pairs.Where(p => p.DeckId == deckId).ExecuteDeleteAsync();
-            await _dbContext.Items.Where(i => i.DeckId == deckId).ExecuteDeleteAsync();
-
-            var (items, pairs, cardDtos) = BuildCardEntities(deck.DeckId, request.Cards);
-
-            _dbContext.Items.AddRange(items);
-            _dbContext.Pairs.AddRange(pairs);
-            await _dbContext.SaveChangesAsync();
-
-            await transaction.CommitAsync();
-
-            return ToDeckDetailDTO(deck, cardDtos);
+            // ============ REAL IMPLEMENTATION (COMMENTED OUT) ============
+            // using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            //
+            // var deck = await GetDeckOrThrowAsync(deckId, userId);
+            //
+            // deck.Title = request.Title;
+            // deck.Description = request.Description;
+            // deck.UpdatedAt = DateTime.UtcNow;
+            //
+            // await _dbContext.Pairs.Where(p => p.DeckId == deckId).ExecuteDeleteAsync();
+            // await _dbContext.Items.Where(i => i.DeckId == deckId).ExecuteDeleteAsync();
+            //
+            // var (items, pairs, cardDtos) = BuildCardEntities(deck.DeckId, request.Cards);
+            //
+            // _dbContext.Items.AddRange(items);
+            // _dbContext.Pairs.AddRange(pairs);
+            // await _dbContext.SaveChangesAsync();
+            //
+            // await transaction.CommitAsync();
+            //
+            // return ToDeckDetailDTO(deck, cardDtos);
         }
 
         public async Task DeleteAsync(Guid deckId, Guid userId) {

@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Flashcards.APIs.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    // [Authorize] // TEMPORARILY DISABLED FOR TESTING - Re-enable when connecting to real auth
     public class DecksController : ControllerBase {
         private readonly DeckService _deckService;
 
@@ -55,11 +55,15 @@ namespace Flashcards.APIs.Controllers {
         }
 
         private Guid GetUserId() {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (claim != null && Guid.TryParse(claim, out var userId)) {
-                return userId;
-            }
-            throw new UnauthorizedException("Invalid user ID.");
+            // TEMPORARY: Return dummy user ID for testing without auth
+            return Guid.Parse("99999999-9999-9999-9999-999999999999");
+
+            // REAL IMPLEMENTATION (COMMENTED OUT):
+            // var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (claim != null && Guid.TryParse(claim, out var userId)) {
+            //     return userId;
+            // }
+            // throw new UnauthorizedException("Invalid user ID.");
         }
     }
 }
