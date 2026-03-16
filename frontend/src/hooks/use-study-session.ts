@@ -1,0 +1,76 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { CardDto } from "@/lib/types";
+
+export type StudyRating = "again" | "good" | "easy";
+
+interface RatingCounts {
+  again: number;
+  good: number;
+  easy: number;
+}
+
+export function useStudySession(cards: CardDto[]) {
+  const orderedCards = useMemo(
+    () => [...cards].sort((a, b) => a.position - b.position),
+    [cards],
+  );
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [ratings, setRatings] = useState<RatingCounts>({
+    again: 0,
+    good: 0,
+    easy: 0,
+  });
+
+  const totalCards = orderedCards.length;
+  const currentCard = orderedCards[currentIndex] ?? null;
+  const completed = totalCards > 0 && currentIndex >= totalCards;
+  const reviewedCount = Math.min(currentIndex, totalCards);
+  const currentCardNumber = completed
+    ? totalCards
+    : Math.min(currentIndex + 1, totalCards);
+
+  function flipCard() {
+    if (completed || totalCards === 0) return;
+    setIsFlipped((prev) => !prev);
+  }
+
+  function rateCard(rating: StudyRating) {
+    if (completed || !currentCard) return;
+
+    setRatings((prev) => ({
+      ...prev,
+      [rating]: prev[rating] + 1,
+    }));
+
+    setIsFlipped(false);
+    setCurrentIndex((prev) => prev + 1);
+  }
+
+  function resetSession() {
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setRatings({
+      again: 0,
+      good: 0,
+      easy: 0,
+    });
+  }
+
+  return {
+    currentCard,
+    currentIndex,
+    currentCardNumber,
+    totalCards,
+    isFlipped,
+    completed,
+    reviewedCount,
+    ratings,
+    flipCard,
+    rateCard,
+    resetSession,
+  };
+}
