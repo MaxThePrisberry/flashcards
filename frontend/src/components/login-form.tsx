@@ -43,9 +43,9 @@ export default function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="login-email">Email</Label>
         <Input
-          id="email"
+          id="login-email"
           type="email"
           placeholder="you@example.com"
           value={email}
@@ -59,9 +59,9 @@ export default function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="login-password">Password</Label>
         <Input
-          id="password"
+          id="login-password"
           type="password"
           placeholder="••••••••"
           value={password}

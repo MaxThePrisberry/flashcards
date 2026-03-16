@@ -48,39 +48,60 @@ export default function RegisterForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="displayName">Display Name</Label>
+        <Label htmlFor="reg-displayName">Display Name</Label>
         <Input
-          id="displayName"
+          id="reg-displayName"
+          type="text"
+          placeholder="Your name"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           required
+          maxLength={100}
+          disabled={isSubmitting}
         />
+        {fieldErrors.displayName && (
+          <p className="text-sm text-destructive">
+            {fieldErrors.displayName[0]}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="reg-email">Email</Label>
         <Input
-          id="email"
+          id="reg-email"
           type="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={isSubmitting}
         />
+        {fieldErrors.email && (
+          <p className="text-sm text-destructive">{fieldErrors.email[0]}</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="reg-password">Password</Label>
         <Input
-          id="password"
+          id="reg-password"
           type="password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={8}
+          disabled={isSubmitting}
         />
+        {fieldErrors.password && (
+          <p className="text-sm text-destructive">{fieldErrors.password[0]}</p>
+        )}
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && !Object.keys(fieldErrors).length && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Creating account..." : "Register"}

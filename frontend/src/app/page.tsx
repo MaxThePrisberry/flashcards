@@ -4,13 +4,12 @@ import Link from "next/link";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
-import { useState } from "react";
-import AuthModal from "@/components/auth-modal";
+
+import { useAuthModal } from "@/components/auth-modal-provider";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const { openAuthModal } = useAuthModal();
 
   return (
     <main className="flex flex-col items-center justify-center flex-1 gap-6 text-center px-4">
@@ -33,23 +32,13 @@ export default function Home() {
             </>
           ) : (
             <>
-              <Button
-                size="lg"
-                onClick={() => {
-                  setAuthMode("login");
-                  setAuthOpen(true);
-                }}
-              >
+              <Button size="lg" onClick={() => openAuthModal("login")}>
                 Login
               </Button>
-
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => {
-                  setAuthMode("register");
-                  setAuthOpen(true);
-                }}
+                onClick={() => openAuthModal("register")}
               >
                 Register
               </Button>
@@ -57,12 +46,6 @@ export default function Home() {
           )}
         </div>
       )}
-      <AuthModal
-        key={authMode}
-        isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
-        initialMode={authMode}
-      />
     </main>
   );
 }

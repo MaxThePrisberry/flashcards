@@ -31,6 +31,8 @@ export default function AuthModal({
   }, [initialMode]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     function handleEsc(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
@@ -40,7 +42,7 @@ export default function AuthModal({
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [onClose]);
+  }, [isOpen, onClose]);
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";

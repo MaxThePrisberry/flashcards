@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
 import AuthProvider from "@/components/auth-provider";
+import AuthModalProvider from "@/components/auth-modal-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +21,12 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} min-h-screen antialiased`}>
         <AuthProvider>
-          <Navbar />
-          <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-            {children}
-          </div>
+          <AuthModalProvider>
+            <Navbar />
+            <div className="flex flex-col min-h-[calc(100vh-4rem)]">
+              {children}
+            </div>
+          </AuthModalProvider>
         </AuthProvider>
       </body>
     </html>

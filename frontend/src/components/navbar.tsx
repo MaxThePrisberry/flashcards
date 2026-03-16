@@ -4,13 +4,12 @@ import Link from "next/link";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
-import { useState } from "react";
-import AuthModal from "@/components/auth-modal";
+
+import { useAuthModal } from "@/components/auth-modal-provider";
 
 export default function Navbar() {
   const { user, isLoading, logout } = useAuth();
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const { openAuthModal } = useAuthModal();
 
   return (
     <nav className="h-16 border-b border-border bg-background flex items-center justify-between px-6">
@@ -34,34 +33,15 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setAuthMode("login");
-                setAuthOpen(true);
-              }}
-            >
+            <Button variant="ghost" onClick={() => openAuthModal("login")}>
               Login
             </Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setAuthMode("register");
-                setAuthOpen(true);
-              }}
-            >
+            <Button variant="ghost" onClick={() => openAuthModal("register")}>
               Register
             </Button>
           </>
         )}
       </div>
-      <AuthModal
-        key={authMode}
-        isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
-        initialMode={authMode}
-      />
     </nav>
   );
 }
