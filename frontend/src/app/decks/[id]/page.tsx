@@ -86,6 +86,10 @@ export default function DeckDetailPage({
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
+            <Button asChild variant="outline">
+              <Link href={`/decks/${deck.id}/edit`}>Edit Deck</Link>
+            </Button>
+
             <Button asChild size="lg" className="gap-2">
               <Link href={`/decks/${deck.id}/study`}>
                 <Brain className="h-4 w-4" />
