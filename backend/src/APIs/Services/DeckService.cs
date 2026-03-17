@@ -15,6 +15,53 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<PaginatedResponse<DeckSummaryDTO>> GetDecksAsync(Guid userId, int page, int pageSize) {
+            // ============ DUMMY DATA FOR TESTING ============
+            /*
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            // Create some dummy decks
+            var allDummyDecks = new List<DeckSummaryDTO> {
+                new DeckSummaryDTO(
+                    Id: Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    Title: "Spanish Vocabulary",
+                    Description: "Common Spanish words and phrases",
+                    CardCount: 25,
+                    CreatedAt: DateTime.UtcNow.AddDays(-10),
+                    UpdatedAt: DateTime.UtcNow.AddDays(-2)
+                ),
+                new DeckSummaryDTO(
+                    Id: Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    Title: "JavaScript Concepts",
+                    Description: "Core JavaScript programming concepts",
+                    CardCount: 42,
+                    CreatedAt: DateTime.UtcNow.AddDays(-7),
+                    UpdatedAt: DateTime.UtcNow.AddDays(-1)
+                ),
+                new DeckSummaryDTO(
+                    Id: Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    Title: "Biology Terms",
+                    Description: "Important biology terminology",
+                    CardCount: 18,
+                    CreatedAt: DateTime.UtcNow.AddDays(-5),
+                    UpdatedAt: DateTime.UtcNow
+                )
+            };
+
+            var totalCount = allDummyDecks.Count;
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var paginatedDecks = allDummyDecks
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            await Task.CompletedTask; // Keep async signature
+
+            return new PaginatedResponse<DeckSummaryDTO>(paginatedDecks, page, pageSize, totalCount, totalPages);
+            */
+
+            // ============ REAL IMPLEMENTATION ============
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 100);
 
@@ -84,6 +131,30 @@ namespace Flashcards.APIs.Services.Decks {
         }
 
         public async Task<DeckDetailDTO> UpdateAsync(Guid deckId, UpdateDeckRequest request, Guid userId) {
+            // ============ DUMMY DATA FOR TESTING ============
+            /*
+            // Create dummy cards from the request
+            var dummyCards = new List<CardDTO>();
+            for (int i = 0; i < request.Cards.Count; i++) {
+                dummyCards.Add(new CardDTO(
+                    Id: Guid.NewGuid(),
+                    Term: request.Cards[i].Term,
+                    Definition: request.Cards[i].Definition,
+                    Position: i
+                ));
+            }
+
+            return new DeckDetailDTO(
+                Id: deckId,
+                Title: request.Title,
+                Description: request.Description,
+                Cards: dummyCards,
+                CreatedAt: DateTime.UtcNow.AddDays(-7), // Mock created 7 days ago
+                UpdatedAt: DateTime.UtcNow
+            );
+            */
+
+            // ============ REAL IMPLEMENTATION ============
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             var deck = await GetDeckOrThrowAsync(deckId, userId);

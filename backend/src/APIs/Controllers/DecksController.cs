@@ -55,6 +55,10 @@ namespace Flashcards.APIs.Controllers {
         }
 
         private Guid GetUserId() {
+            // TEMPORARY: Return dummy user ID for testing without auth
+            // return Guid.Parse("99999999-9999-9999-9999-999999999999");
+
+            // REAL IMPLEMENTATION:
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (claim != null && Guid.TryParse(claim, out var userId)) {
                 return userId;
