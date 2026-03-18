@@ -60,7 +60,9 @@ export default function RegisterForm({
           disabled={isSubmitting}
         />
         {fieldErrors.displayName && (
-          <p className="text-sm text-destructive">{fieldErrors.displayName[0]}</p>
+          <p className="text-sm text-destructive">
+            {fieldErrors.displayName[0]}
+          </p>
         )}
       </div>
 

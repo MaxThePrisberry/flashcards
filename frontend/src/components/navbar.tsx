@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
+
 import { useAuthModal } from "@/components/auth-modal-provider";
 
 export default function Navbar() {

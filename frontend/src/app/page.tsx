@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
+
 import { useAuthModal } from "@/components/auth-modal-provider";
 
 export default function Home() {
@@ -34,7 +35,11 @@ export default function Home() {
               <Button size="lg" onClick={() => openAuthModal("login")}>
                 Login
               </Button>
-              <Button variant="outline" size="lg" onClick={() => openAuthModal("register")}>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => openAuthModal("register")}
+              >
                 Register
               </Button>
             </>
