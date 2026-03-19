@@ -16,8 +16,9 @@
 3. [Authentication](#3-authentication)
 4. [Users](#4-users)
 5. [Decks](#5-decks)
-6. [HTTP Status Code Conventions](#6-http-status-code-conventions)
-7. [Appendix: TypeScript Interfaces & C# Records](#7-appendix-typescript-interfaces--c-records)
+6. [Study Sessions](#6-study-sessions)
+7. [HTTP Status Code Conventions](#7-http-status-code-conventions)
+8. [Appendix: TypeScript Interfaces & C# Records](#8-appendix-typescript-interfaces--c-records)
 
 ---
 
@@ -521,7 +522,112 @@ No response body.
 
 ---
 
-## 6. HTTP Status Code Conventions
+## 6. Study Sessions
+
+All endpoints in this section require authentication. Users can only access study sessions for their own decks.
+
+A **study session** represents one complete pass through a deck. When the user finishes the deck, the frontend submits which cards they still need to review. The server records the session and returns the full details of those cards so the user can immediately drill the ones they missed.
+
+The `ReviewHistory` table stores one row per session (user + deck + timestamp). The `ReviewPair` table stores one row per card that still needs review in that session, referencing the `Pair` (card) that needs more practice.
+
+---
+
+### POST /api/decks/{deckId}/reviews
+
+Submit a completed deck study session. Creates a `ReviewHistory` record and a `ReviewPair` record for each card marked "needs review". Returns the details of only the cards that need further review.
+
+**Path Parameters**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `deckId` | `string (uuid)` | Deck ID. |
+
+**Request — SubmitReviewRequest**
+
+```json
+{
+  "needsReview": [
+    "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "c3d4e5f6-a7b8-9012-cdef-123456789012"
+  ]
+}
+```
+
+| Field | Type | Required | Constraints | Description |
+|-------|------|----------|-------------|-------------|
+| `needsReview` | `string[] (uuid)` | Yes | — | IDs of cards the user marked "needs review". Send an empty array if the user got every card. |
+
+**Response — ReviewSessionDto** `201 Created`
+
+```json
+{
+  "sessionId": "d4e5f6a7-b8c9-0123-defa-234567890123",
+  "deckId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "reviewedAt": "2026-03-17T10:00:00Z",
+  "reviewCards": [
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "term": "Hola",
+      "definition": "Hello",
+      "position": 0
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "term": "Gracias",
+      "definition": "Thank you",
+      "position": 1
+    }
+  ]
+}
+```
+
+#### ReviewSessionDto
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sessionId` | `string (uuid)` | Unique session identifier (`ReviewHistory.history_id`). |
+| `deckId` | `string (uuid)` | The deck that was studied. |
+| `reviewedAt` | `string (datetime)` | When the session was completed (ISO 8601 UTC). |
+| `reviewCards` | `CardDto[]` | Full details of cards still needing review, ordered by `position`. Empty array if the user got every card. |
+
+**Error Responses**
+
+| Status | Error Code | When |
+|--------|------------|------|
+| 400 | `validation_error` | `needsReview` is null or contains invalid/non-existent card IDs for this deck |
+| 401 | `unauthorized` | Missing or invalid JWT |
+| 404 | `not_found` | Deck does not exist or belongs to another user |
+
+**Design Rationale.** The frontend sends only the IDs of cards needing review rather than the full card objects, keeping the request payload small. The response immediately returns the full `CardDto` details of those cards so the frontend can start a follow-up drill without an extra round-trip. Sending an empty `needsReview` array is valid and records a perfect-score session.
+
+---
+
+### GET /api/decks/{deckId}/reviews/latest
+
+Get the most recent study session for a deck, including which cards still need review. Useful for letting the user resume a drill or see their last result when they reopen a deck.
+
+**Path Parameters**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `deckId` | `string (uuid)` | Deck ID. |
+
+**Response — ReviewSessionDto** `200 OK`
+
+Same shape as [POST /api/decks/{deckId}/reviews response](#reviewsessiondto).
+
+**Error Responses**
+
+| Status | Error Code | When |
+|--------|------------|------|
+| 401 | `unauthorized` | Missing or invalid JWT |
+| 404 | `not_found` | Deck does not exist, belongs to another user, or no sessions exist yet for this deck |
+
+**Design Rationale.** Returning 404 when no sessions exist keeps the response shape simple — the frontend handles "no history yet" as a not-found case rather than needing a nullable wrapper. Returning the full `ReviewSessionDto` (including `reviewCards`) avoids a second request to fetch the cards for the drill-again flow.
+
+---
+
+## 7. HTTP Status Code Conventions
 
 | Status Code | Meaning | Used For |
 |-------------|---------|----------|
@@ -536,7 +642,7 @@ No response body.
 
 ---
 
-## 7. Appendix: TypeScript Interfaces & C# Records
+## 8. Appendix: TypeScript Interfaces & C# Records
 
 Platform-specific type definitions that map directly to the JSON shapes above, provided for copy-paste convenience.
 
@@ -636,6 +742,19 @@ interface UpdateDeckRequest {
 interface UpdateCardRequest {
   term: string;
   definition: string;
+}
+
+// --- Study Sessions ---
+
+interface SubmitReviewRequest {
+  needsReview: string[]; // card UUIDs
+}
+
+interface ReviewSessionDto {
+  sessionId: string;
+  deckId: string;
+  reviewedAt: string;
+  reviewCards: CardDto[];
 }
 
 // --- Pagination ---
@@ -747,6 +866,19 @@ public record UpdateCardRequest(
     string Definition
 );
 
+// --- Study Sessions ---
+
+public record SubmitReviewRequest(
+    List<Guid> NeedsReview
+);
+
+public record ReviewSessionDto(
+    Guid SessionId,
+    Guid DeckId,
+    DateTime ReviewedAt,
+    List<CardDto> ReviewCards
+);
+
 // --- Pagination ---
 
 public record PaginatedResponse<T>(
@@ -772,3 +904,7 @@ public record PaginatedResponse<T>(
 | Separate ChangePasswordRequest | Password changes are a security action requiring current-password re-authentication, not a profile edit. |
 | `position` field on cards | Preserves user-defined card ordering, which is critical for study flows. |
 | 404 instead of 403 for other users' decks | Prevents resource enumeration — attacker can't distinguish "exists but not mine" from "doesn't exist". |
+| Session submitted at end of full deck pass | Aligns with the UX: the full deck is reviewed first, then missed cards are drilled. Avoids noisy partial-session data. |
+| `needsReview` is card IDs only | Small request payload. Server looks up full card details and returns them, so the frontend gets everything needed for a follow-up drill in one response. |
+| Empty `needsReview` is valid | Records a perfect-score session. No special "perfect" endpoint needed. |
+| GET latest returns 404 if no sessions | Keeps the response shape non-nullable. Frontend handles "no history yet" as a not-found case. |
