@@ -1,11 +1,11 @@
 # API Contract — Technical Design Document
 
-| | |
-|---|---|
-| **Project** | Flashcards |
-| **Version** | 1.0 |
-| **Date** | 2026-02-17 |
-| **Wiki** | [Project Wiki](https://github.com/cs428TAs/w2026/wiki/Flashcards) |
+|             |                                                                   |
+| ----------- | ----------------------------------------------------------------- |
+| **Project** | Flashcards                                                        |
+| **Version** | 1.0                                                               |
+| **Date**    | 2026-02-17                                                        |
+| **Wiki**    | [Project Wiki](https://github.com/cs428TAs/w2026/wiki/Flashcards) |
 
 ---
 
@@ -49,11 +49,11 @@ All error responses from the API share a single shape. This provides a consisten
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `error` | `string` | Yes | Machine-readable error code for programmatic handling (e.g. `"validation_error"`, `"not_found"`, `"unauthorized"`, `"conflict"`). |
-| `message` | `string` | Yes | Human-readable message suitable for display to the user. |
-| `details` | `Record<string, string[]>` | No | Per-field validation errors. Keys are field names, values are arrays of error messages. Only present for `validation_error`. |
+| Field     | Type                       | Required | Description                                                                                                                       |
+| --------- | -------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `error`   | `string`                   | Yes      | Machine-readable error code for programmatic handling (e.g. `"validation_error"`, `"not_found"`, `"unauthorized"`, `"conflict"`). |
+| `message` | `string`                   | Yes      | Human-readable message suitable for display to the user.                                                                          |
+| `details` | `Record<string, string[]>` | No       | Per-field validation errors. Keys are field names, values are arrays of error messages. Only present for `validation_error`.      |
 
 **Design Rationale.** Separating `error` (machine-readable) from `message` (human-readable) lets the frontend switch on error codes for control flow while still having a displayable string. The optional `details` map enables inline field-level validation feedback in forms without inventing a separate response shape for validation errors.
 
@@ -75,11 +75,11 @@ Create a new user account and receive a JWT.
 }
 ```
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `email` | `string` | Yes | Valid email format; unique across all users | Login identifier. |
-| `password` | `string` | Yes | Min 8 characters | Account password. |
-| `displayName` | `string` | Yes | 1–100 characters | Public-facing display name. |
+| Field         | Type     | Required | Constraints                                 | Description                 |
+| ------------- | -------- | -------- | ------------------------------------------- | --------------------------- |
+| `email`       | `string` | Yes      | Valid email format; unique across all users | Login identifier.           |
+| `password`    | `string` | Yes      | Min 8 characters                            | Account password.           |
+| `displayName` | `string` | Yes      | 1–100 characters                            | Public-facing display name. |
 
 **Response — AuthResponse** `201 Created`
 
@@ -96,18 +96,18 @@ Create a new user account and receive a JWT.
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `token` | `string` | Signed JWT for subsequent authenticated requests. |
+| Field       | Type      | Description                                                                             |
+| ----------- | --------- | --------------------------------------------------------------------------------------- |
+| `token`     | `string`  | Signed JWT for subsequent authenticated requests.                                       |
 | `expiresIn` | `integer` | Token lifetime in seconds. Lets the frontend schedule refresh without decoding the JWT. |
-| `user` | `UserDto` | The newly created user profile (see [UserDto](#get-apiusersme)). |
+| `user`      | `UserDto` | The newly created user profile (see [UserDto](#get-apiusersme)).                        |
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 400 | `validation_error` | Missing/invalid fields |
-| 409 | `conflict` | Email already registered |
+| Status | Error Code         | When                     |
+| ------ | ------------------ | ------------------------ |
+| 400    | `validation_error` | Missing/invalid fields   |
+| 409    | `conflict`         | Email already registered |
 
 **Design Rationale.** Email is used as the login identifier rather than a username to avoid "username already taken" friction — everyone has a unique email. `displayName` is separate because users want a public-facing name that isn't their email. There is no "confirm password" field; that is a frontend UI concern, not an API concern. The response bundles the JWT token AND user data together, eliminating a second `GET /api/users/me` roundtrip after signup.
 
@@ -126,10 +126,10 @@ Authenticate with existing credentials.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | `string` | Yes | Account email. |
-| `password` | `string` | Yes | Account password. |
+| Field      | Type     | Required | Description       |
+| ---------- | -------- | -------- | ----------------- |
+| `email`    | `string` | Yes      | Account email.    |
+| `password` | `string` | Yes      | Account password. |
 
 **Response — AuthResponse** `200 OK`
 
@@ -150,10 +150,10 @@ Same shape as [signup response](#post-apiauthsignup).
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 400 | `validation_error` | Missing/invalid fields |
-| 401 | `unauthorized` | Invalid email or password |
+| Status | Error Code         | When                      |
+| ------ | ------------------ | ------------------------- |
+| 400    | `validation_error` | Missing/invalid fields    |
+| 401    | `unauthorized`     | Invalid email or password |
 
 **Design Rationale.** A simple credential pair, consistent with signup using email as the identifier. The response reuses `AuthResponse` so the frontend login and signup flows converge to the same post-auth state: store the token and hydrate the user.
 
@@ -178,18 +178,18 @@ Return the authenticated user's profile.
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string (uuid)` | Unique user identifier. |
-| `email` | `string` | User's email address. |
-| `displayName` | `string` | Public display name. |
-| `createdAt` | `string (datetime)` | Account creation timestamp (ISO 8601 UTC). |
+| Field         | Type                | Description                                |
+| ------------- | ------------------- | ------------------------------------------ |
+| `id`          | `string (uuid)`     | Unique user identifier.                    |
+| `email`       | `string`            | User's email address.                      |
+| `displayName` | `string`            | Public display name.                       |
+| `createdAt`   | `string (datetime)` | Account creation timestamp (ISO 8601 UTC). |
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 401 | `unauthorized` | Missing or invalid JWT |
+| Status | Error Code     | When                   |
+| ------ | -------------- | ---------------------- |
+| 401    | `unauthorized` | Missing or invalid JWT |
 
 **Design Rationale.** `UserDto` is the safe public representation of a user — no password hash ever leaves the server. The UUID `id` is included for client-side reference and future features like deck-sharing attribution. `createdAt` supports "member since" display on profile pages.
 
@@ -207,10 +207,10 @@ Update the authenticated user's profile. Uses PATCH semantics: only include the 
 }
 ```
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `displayName` | `string` | No | 1–100 characters | New display name. |
-| `email` | `string` | No | Valid email format; unique | New email address. May trigger re-verification in a future iteration. |
+| Field         | Type     | Required | Constraints                | Description                                                           |
+| ------------- | -------- | -------- | -------------------------- | --------------------------------------------------------------------- |
+| `displayName` | `string` | No       | 1–100 characters           | New display name.                                                     |
+| `email`       | `string` | No       | Valid email format; unique | New email address. May trigger re-verification in a future iteration. |
 
 At least one field must be provided.
 
@@ -220,11 +220,11 @@ Returns the full updated user profile (same shape as [GET /api/users/me](#get-ap
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 400 | `validation_error` | Invalid fields or empty request body |
-| 401 | `unauthorized` | Missing or invalid JWT |
-| 409 | `conflict` | New email already in use |
+| Status | Error Code         | When                                 |
+| ------ | ------------------ | ------------------------------------ |
+| 400    | `validation_error` | Invalid fields or empty request body |
+| 401    | `unauthorized`     | Missing or invalid JWT               |
+| 409    | `conflict`         | New email already in use             |
 
 **Design Rationale.** PATCH semantics let the frontend send only what changed, avoiding accidental overwrites. Email and display name changes live together because they are both "profile info" — but password changes are deliberately separated (see below) because they are a distinct security action.
 
@@ -243,10 +243,10 @@ Change the authenticated user's password.
 }
 ```
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `currentPassword` | `string` | Yes | — | Current password for re-authentication. |
-| `newPassword` | `string` | Yes | Min 8 characters | The new password. |
+| Field             | Type     | Required | Constraints      | Description                             |
+| ----------------- | -------- | -------- | ---------------- | --------------------------------------- |
+| `currentPassword` | `string` | Yes      | —                | Current password for re-authentication. |
+| `newPassword`     | `string` | Yes      | Min 8 characters | The new password.                       |
 
 **Response** `204 No Content`
 
@@ -254,10 +254,10 @@ No response body.
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 400 | `validation_error` | New password doesn't meet requirements |
-| 401 | `unauthorized` | Missing/invalid JWT or wrong current password |
+| Status | Error Code         | When                                          |
+| ------ | ------------------ | --------------------------------------------- |
+| 400    | `validation_error` | New password doesn't meet requirements        |
+| 401    | `unauthorized`     | Missing/invalid JWT or wrong current password |
 
 **Design Rationale.** Password changes are separated from profile updates because they are a security action requiring re-authentication via the current password. Returning 204 (no body) is appropriate since there is no meaningful data to return — the password hash is never exposed.
 
@@ -277,10 +277,10 @@ List the authenticated user's decks with pagination.
 
 **Query Parameters**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | `integer` | `1` | Page number (1-indexed). |
-| `pageSize` | `integer` | `20` | Items per page (max 100). |
+| Parameter  | Type      | Default | Description               |
+| ---------- | --------- | ------- | ------------------------- |
+| `page`     | `integer` | `1`     | Page number (1-indexed).  |
+| `pageSize` | `integer` | `20`    | Items per page (max 100). |
 
 **Response — PaginatedResponse\<DeckSummaryDto\>** `200 OK`
 
@@ -305,30 +305,30 @@ List the authenticated user's decks with pagination.
 
 #### PaginatedResponse\<T\>
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `items` | `T[]` | Array of results for the current page. |
-| `page` | `integer` | Current page number. |
-| `pageSize` | `integer` | Number of items per page. |
+| Field        | Type      | Description                             |
+| ------------ | --------- | --------------------------------------- |
+| `items`      | `T[]`     | Array of results for the current page.  |
+| `page`       | `integer` | Current page number.                    |
+| `pageSize`   | `integer` | Number of items per page.               |
 | `totalCount` | `integer` | Total number of items across all pages. |
-| `totalPages` | `integer` | Total number of pages. |
+| `totalPages` | `integer` | Total number of pages.                  |
 
 #### DeckSummaryDto
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string (uuid)` | Unique deck identifier. |
-| `title` | `string` | Deck title. |
-| `description` | `string` | Deck description (empty string if none). |
-| `cardCount` | `integer` | Number of cards in the deck. |
-| `createdAt` | `string (datetime)` | When the deck was created (ISO 8601 UTC). |
-| `updatedAt` | `string (datetime)` | When the deck was last modified (ISO 8601 UTC). |
+| Field         | Type                | Description                                     |
+| ------------- | ------------------- | ----------------------------------------------- |
+| `id`          | `string (uuid)`     | Unique deck identifier.                         |
+| `title`       | `string`            | Deck title.                                     |
+| `description` | `string`            | Deck description (empty string if none).        |
+| `cardCount`   | `integer`           | Number of cards in the deck.                    |
+| `createdAt`   | `string (datetime)` | When the deck was created (ISO 8601 UTC).       |
+| `updatedAt`   | `string (datetime)` | When the deck was last modified (ISO 8601 UTC). |
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 401 | `unauthorized` | Missing or invalid JWT |
+| Status | Error Code     | When                   |
+| ------ | -------------- | ---------------------- |
+| 401    | `unauthorized` | Missing or invalid JWT |
 
 **Design Rationale.** `DeckSummaryDto` is used in list/grid views and sends `cardCount` (an integer) instead of the full card array. This keeps list payloads small: 50 decks times a few fields, rather than 50 decks times N cards each. Pagination via `PaginatedResponse<T>` prevents unbounded payloads as users accumulate decks. Standard offset-based pagination is sufficient for the expected dataset sizes.
 
@@ -351,18 +351,18 @@ Create a new deck with its cards.
 }
 ```
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `title` | `string` | Yes | 1–200 characters | Deck title. |
-| `description` | `string` | No | Max 1000 characters | Deck description. Defaults to empty string. |
-| `cards` | `CreateCardRequest[]` | Yes | Min 1 card | Initial set of cards. |
+| Field         | Type                  | Required | Constraints         | Description                                 |
+| ------------- | --------------------- | -------- | ------------------- | ------------------------------------------- |
+| `title`       | `string`              | Yes      | 1–200 characters    | Deck title.                                 |
+| `description` | `string`              | No       | Max 1000 characters | Deck description. Defaults to empty string. |
+| `cards`       | `CreateCardRequest[]` | Yes      | Min 1 card          | Initial set of cards.                       |
 
 #### CreateCardRequest (inline)
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `term` | `string` | Yes | 1–500 characters | Card front / term. |
-| `definition` | `string` | Yes | 1–2000 characters | Card back / definition. |
+| Field        | Type     | Required | Constraints       | Description             |
+| ------------ | -------- | -------- | ----------------- | ----------------------- |
+| `term`       | `string` | Yes      | 1–500 characters  | Card front / term.      |
+| `definition` | `string` | Yes      | 1–2000 characters | Card back / definition. |
 
 **Response — DeckDetailDto** `201 Created`
 
@@ -392,30 +392,30 @@ Create a new deck with its cards.
 
 #### DeckDetailDto
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string (uuid)` | Unique deck identifier. |
-| `title` | `string` | Deck title. |
-| `description` | `string` | Deck description (empty string if none). |
-| `cards` | `CardDto[]` | All cards in the deck, ordered by `position`. |
-| `createdAt` | `string (datetime)` | When the deck was created (ISO 8601 UTC). |
-| `updatedAt` | `string (datetime)` | When the deck was last modified (ISO 8601 UTC). |
+| Field         | Type                | Description                                     |
+| ------------- | ------------------- | ----------------------------------------------- |
+| `id`          | `string (uuid)`     | Unique deck identifier.                         |
+| `title`       | `string`            | Deck title.                                     |
+| `description` | `string`            | Deck description (empty string if none).        |
+| `cards`       | `CardDto[]`         | All cards in the deck, ordered by `position`.   |
+| `createdAt`   | `string (datetime)` | When the deck was created (ISO 8601 UTC).       |
+| `updatedAt`   | `string (datetime)` | When the deck was last modified (ISO 8601 UTC). |
 
 #### CardDto
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string (uuid)` | Unique card identifier. |
-| `term` | `string` | Card front / term. |
-| `definition` | `string` | Card back / definition. |
-| `position` | `integer` | Zero-based display order within the deck. |
+| Field        | Type            | Description                               |
+| ------------ | --------------- | ----------------------------------------- |
+| `id`         | `string (uuid)` | Unique card identifier.                   |
+| `term`       | `string`        | Card front / term.                        |
+| `definition` | `string`        | Card back / definition.                   |
+| `position`   | `integer`       | Zero-based display order within the deck. |
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 400 | `validation_error` | Missing/invalid fields, or empty cards array |
-| 401 | `unauthorized` | Missing or invalid JWT |
+| Status | Error Code         | When                                         |
+| ------ | ------------------ | -------------------------------------------- |
+| 400    | `validation_error` | Missing/invalid fields, or empty cards array |
+| 401    | `unauthorized`     | Missing or invalid JWT                       |
 
 **Design Rationale.** Cards are provided inline at creation time because creating an empty deck then adding cards one-by-one is bad UX — users always have at least one card in mind when they create a deck. The request omits `id` and `position` for cards because the server assigns UUIDs and auto-positions by array index. `description` is optional because many users skip it.
 
@@ -427,9 +427,9 @@ Get a single deck with all its cards.
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `string (uuid)` | Deck ID. |
+| Parameter | Type            | Description |
+| --------- | --------------- | ----------- |
+| `id`      | `string (uuid)` | Deck ID.    |
 
 **Response — DeckDetailDto** `200 OK`
 
@@ -437,10 +437,10 @@ Same shape as [POST /api/decks response](#deckdetaildto).
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 401 | `unauthorized` | Missing or invalid JWT |
-| 404 | `not_found` | Deck does not exist or belongs to another user |
+| Status | Error Code     | When                                           |
+| ------ | -------------- | ---------------------------------------------- |
+| 401    | `unauthorized` | Missing or invalid JWT                         |
+| 404    | `not_found`    | Deck does not exist or belongs to another user |
 
 **Design Rationale.** Returns the full deck with embedded cards because cards are ALWAYS needed when viewing a single deck — there is no scenario where you fetch a deck but don't want its cards. Returning 404 for another user's deck (rather than 403) prevents user enumeration.
 
@@ -452,9 +452,9 @@ Replace an entire deck and its cards.
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `string (uuid)` | Deck ID. |
+| Parameter | Type            | Description |
+| --------- | --------------- | ----------- |
+| `id`      | `string (uuid)` | Deck ID.    |
 
 **Request — UpdateDeckRequest**
 
@@ -470,18 +470,18 @@ Replace an entire deck and its cards.
 }
 ```
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `title` | `string` | Yes | 1–200 characters | Deck title. |
-| `description` | `string` | Yes | Max 1000 characters | Deck description. Send empty string to clear. |
-| `cards` | `UpdateCardRequest[]` | Yes | Min 1 card | Complete set of cards. Replaces all existing cards. |
+| Field         | Type                  | Required | Constraints         | Description                                         |
+| ------------- | --------------------- | -------- | ------------------- | --------------------------------------------------- |
+| `title`       | `string`              | Yes      | 1–200 characters    | Deck title.                                         |
+| `description` | `string`              | Yes      | Max 1000 characters | Deck description. Send empty string to clear.       |
+| `cards`       | `UpdateCardRequest[]` | Yes      | Min 1 card          | Complete set of cards. Replaces all existing cards. |
 
 #### UpdateCardRequest (inline)
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `term` | `string` | Yes | 1–500 characters | Card front / term. |
-| `definition` | `string` | Yes | 1–2000 characters | Card back / definition. |
+| Field        | Type     | Required | Constraints       | Description             |
+| ------------ | -------- | -------- | ----------------- | ----------------------- |
+| `term`       | `string` | Yes      | 1–500 characters  | Card front / term.      |
+| `definition` | `string` | Yes      | 1–2000 characters | Card back / definition. |
 
 **Response — DeckDetailDto** `200 OK`
 
@@ -489,11 +489,11 @@ Same shape as [POST /api/decks response](#deckdetaildto).
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 400 | `validation_error` | Missing/invalid fields, or empty cards array |
-| 401 | `unauthorized` | Missing or invalid JWT |
-| 404 | `not_found` | Deck does not exist or belongs to another user |
+| Status | Error Code         | When                                           |
+| ------ | ------------------ | ---------------------------------------------- |
+| 400    | `validation_error` | Missing/invalid fields, or empty cards array   |
+| 401    | `unauthorized`     | Missing or invalid JWT                         |
+| 404    | `not_found`        | Deck does not exist or belongs to another user |
 
 **Design Rationale.** This uses full replacement (PUT) rather than partial update (PATCH). The frontend holds the complete deck in state while the user edits — adding, removing, reordering cards — then saves the whole document atomically. The server replaces all cards with the provided array: deleted cards are those absent from the new array, added cards are new entries. This eliminates all partial-state and consistency issues that come with per-card PATCH operations. Deck editing is a "save document" pattern, not a "tweak one field" pattern.
 
@@ -505,9 +505,9 @@ Delete a deck and all its cards.
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | `string (uuid)` | Deck ID. |
+| Parameter | Type            | Description |
+| --------- | --------------- | ----------- |
+| `id`      | `string (uuid)` | Deck ID.    |
 
 **Response** `204 No Content`
 
@@ -515,10 +515,10 @@ No response body.
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 401 | `unauthorized` | Missing or invalid JWT |
-| 404 | `not_found` | Deck does not exist or belongs to another user |
+| Status | Error Code     | When                                           |
+| ------ | -------------- | ---------------------------------------------- |
+| 401    | `unauthorized` | Missing or invalid JWT                         |
+| 404    | `not_found`    | Deck does not exist or belongs to another user |
 
 ---
 
@@ -538,9 +538,9 @@ Submit a completed deck study session. Creates a `ReviewHistory` record and a `R
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `deckId` | `string (uuid)` | Deck ID. |
+| Parameter | Type            | Description |
+| --------- | --------------- | ----------- |
+| `deckId`  | `string (uuid)` | Deck ID.    |
 
 **Request — SubmitReviewRequest**
 
@@ -553,9 +553,9 @@ Submit a completed deck study session. Creates a `ReviewHistory` record and a `R
 }
 ```
 
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `needsReview` | `string[] (uuid)` | Yes | — | IDs of cards the user marked "needs review". Send an empty array if the user got every card. |
+| Field         | Type              | Required | Constraints | Description                                                                                  |
+| ------------- | ----------------- | -------- | ----------- | -------------------------------------------------------------------------------------------- |
+| `needsReview` | `string[] (uuid)` | Yes      | —           | IDs of cards the user marked "needs review". Send an empty array if the user got every card. |
 
 **Response — ReviewSessionDto** `201 Created`
 
@@ -583,20 +583,20 @@ Submit a completed deck study session. Creates a `ReviewHistory` record and a `R
 
 #### ReviewSessionDto
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `sessionId` | `string (uuid)` | Unique session identifier (`ReviewHistory.history_id`). |
-| `deckId` | `string (uuid)` | The deck that was studied. |
-| `reviewedAt` | `string (datetime)` | When the session was completed (ISO 8601 UTC). |
-| `reviewCards` | `CardDto[]` | Full details of cards still needing review, ordered by `position`. Empty array if the user got every card. |
+| Field         | Type                | Description                                                                                                |
+| ------------- | ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `sessionId`   | `string (uuid)`     | Unique session identifier (`ReviewHistory.history_id`).                                                    |
+| `deckId`      | `string (uuid)`     | The deck that was studied.                                                                                 |
+| `reviewedAt`  | `string (datetime)` | When the session was completed (ISO 8601 UTC).                                                             |
+| `reviewCards` | `CardDto[]`         | Full details of cards still needing review, ordered by `position`. Empty array if the user got every card. |
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 400 | `validation_error` | `needsReview` is null or contains invalid/non-existent card IDs for this deck |
-| 401 | `unauthorized` | Missing or invalid JWT |
-| 404 | `not_found` | Deck does not exist or belongs to another user |
+| Status | Error Code         | When                                                                          |
+| ------ | ------------------ | ----------------------------------------------------------------------------- |
+| 400    | `validation_error` | `needsReview` is null or contains invalid/non-existent card IDs for this deck |
+| 401    | `unauthorized`     | Missing or invalid JWT                                                        |
+| 404    | `not_found`        | Deck does not exist or belongs to another user                                |
 
 **Design Rationale.** The frontend sends only the IDs of cards needing review rather than the full card objects, keeping the request payload small. The response immediately returns the full `CardDto` details of those cards so the frontend can start a follow-up drill without an extra round-trip. Sending an empty `needsReview` array is valid and records a perfect-score session.
 
@@ -608,9 +608,9 @@ Get the most recent study session for a deck, including which cards still need r
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `deckId` | `string (uuid)` | Deck ID. |
+| Parameter | Type            | Description |
+| --------- | --------------- | ----------- |
+| `deckId`  | `string (uuid)` | Deck ID.    |
 
 **Response — ReviewSessionDto** `200 OK`
 
@@ -618,10 +618,10 @@ Same shape as [POST /api/decks/{deckId}/reviews response](#reviewsessiondto).
 
 **Error Responses**
 
-| Status | Error Code | When |
-|--------|------------|------|
-| 401 | `unauthorized` | Missing or invalid JWT |
-| 404 | `not_found` | Deck does not exist, belongs to another user, or no sessions exist yet for this deck |
+| Status | Error Code     | When                                                                                 |
+| ------ | -------------- | ------------------------------------------------------------------------------------ |
+| 401    | `unauthorized` | Missing or invalid JWT                                                               |
+| 404    | `not_found`    | Deck does not exist, belongs to another user, or no sessions exist yet for this deck |
 
 **Design Rationale.** Returning 404 when no sessions exist keeps the response shape simple — the frontend handles "no history yet" as a not-found case rather than needing a nullable wrapper. Returning the full `ReviewSessionDto` (including `reviewCards`) avoids a second request to fetch the cards for the drill-again flow.
 
@@ -629,16 +629,16 @@ Same shape as [POST /api/decks/{deckId}/reviews response](#reviewsessiondto).
 
 ## 7. HTTP Status Code Conventions
 
-| Status Code | Meaning | Used For |
-|-------------|---------|----------|
-| `200 OK` | Success | GET, PATCH, PUT responses that return data |
-| `201 Created` | Resource created | POST signup, POST create deck |
-| `204 No Content` | Success, no body | DELETE, password change |
-| `400 Bad Request` | Validation failure | Invalid or missing request fields |
-| `401 Unauthorized` | Auth failure | Missing/invalid JWT, wrong password |
-| `404 Not Found` | Resource not found | Deck not found or not owned by user |
-| `409 Conflict` | Uniqueness violation | Email already registered |
-| `500 Internal Server Error` | Server error | Unhandled exceptions (returns `ErrorResponse` with `error: "server_error"`) |
+| Status Code                 | Meaning              | Used For                                                                    |
+| --------------------------- | -------------------- | --------------------------------------------------------------------------- |
+| `200 OK`                    | Success              | GET, PATCH, PUT responses that return data                                  |
+| `201 Created`               | Resource created     | POST signup, POST create deck                                               |
+| `204 No Content`            | Success, no body     | DELETE, password change                                                     |
+| `400 Bad Request`           | Validation failure   | Invalid or missing request fields                                           |
+| `401 Unauthorized`          | Auth failure         | Missing/invalid JWT, wrong password                                         |
+| `404 Not Found`             | Resource not found   | Deck not found or not owned by user                                         |
+| `409 Conflict`              | Uniqueness violation | Email already registered                                                    |
+| `500 Internal Server Error` | Server error         | Unhandled exceptions (returns `ErrorResponse` with `error: "server_error"`) |
 
 ---
 
@@ -766,6 +766,19 @@ interface PaginatedResponse<T> {
   totalCount: number;
   totalPages: number;
 }
+
+// --- Study Sessions ---
+
+interface SubmitReviewRequest {
+  needsReview: string[];
+}
+
+interface ReviewSessionDto {
+  sessionId: number;
+  deckId: string;
+  reviewedAt: string;
+  reviewCards: CardDto[];
+}
 ```
 
 ### C#
@@ -888,23 +901,36 @@ public record PaginatedResponse<T>(
     int TotalCount,
     int TotalPages
 );
+
+// --- Study Sessions ---
+
+public record SubmitReviewRequest(
+    List<Guid> NeedsReview
+);
+
+public record ReviewSessionDto(
+    int SessionId,
+    Guid DeckId,
+    DateTime ReviewedAt,
+    List<CardDto> ReviewCards
+);
 ```
 
 ---
 
 ## Key Design Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| UUIDs over auto-increment IDs | Prevents enumeration attacks; no sequential guessing of resource IDs. |
-| Deck-centric (no card endpoints) | Cards are always part of a deck. Matches "save document" UX; atomic updates; simpler API surface. |
-| PUT for deck updates (full replace) | No partial state bugs. The frontend always has the full deck in memory during editing. |
-| AuthResponse bundles token + user | Saves a roundtrip after login/signup — frontend gets everything it needs in one response. |
-| DeckSummaryDto vs DeckDetailDto | List views stay lightweight with `cardCount`; detail views include the full card array. |
-| Separate ChangePasswordRequest | Password changes are a security action requiring current-password re-authentication, not a profile edit. |
-| `position` field on cards | Preserves user-defined card ordering, which is critical for study flows. |
-| 404 instead of 403 for other users' decks | Prevents resource enumeration — attacker can't distinguish "exists but not mine" from "doesn't exist". |
-| Session submitted at end of full deck pass | Aligns with the UX: the full deck is reviewed first, then missed cards are drilled. Avoids noisy partial-session data. |
-| `needsReview` is card IDs only | Small request payload. Server looks up full card details and returns them, so the frontend gets everything needed for a follow-up drill in one response. |
-| Empty `needsReview` is valid | Records a perfect-score session. No special "perfect" endpoint needed. |
-| GET latest returns 404 if no sessions | Keeps the response shape non-nullable. Frontend handles "no history yet" as a not-found case. |
+| Decision                                   | Rationale                                                                                                                                                |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UUIDs over auto-increment IDs              | Prevents enumeration attacks; no sequential guessing of resource IDs.                                                                                    |
+| Deck-centric (no card endpoints)           | Cards are always part of a deck. Matches "save document" UX; atomic updates; simpler API surface.                                                        |
+| PUT for deck updates (full replace)        | No partial state bugs. The frontend always has the full deck in memory during editing.                                                                   |
+| AuthResponse bundles token + user          | Saves a roundtrip after login/signup — frontend gets everything it needs in one response.                                                                |
+| DeckSummaryDto vs DeckDetailDto            | List views stay lightweight with `cardCount`; detail views include the full card array.                                                                  |
+| Separate ChangePasswordRequest             | Password changes are a security action requiring current-password re-authentication, not a profile edit.                                                 |
+| `position` field on cards                  | Preserves user-defined card ordering, which is critical for study flows.                                                                                 |
+| 404 instead of 403 for other users' decks  | Prevents resource enumeration — attacker can't distinguish "exists but not mine" from "doesn't exist".                                                   |
+| Session submitted at end of full deck pass | Aligns with the UX: the full deck is reviewed first, then missed cards are drilled. Avoids noisy partial-session data.                                   |
+| `needsReview` is card IDs only             | Small request payload. Server looks up full card details and returns them, so the frontend gets everything needed for a follow-up drill in one response. |
+| Empty `needsReview` is valid               | Records a perfect-score session. No special "perfect" endpoint needed.                                                                                   |
+| GET latest returns 404 if no sessions      | Keeps the response shape non-nullable. Frontend handles "no history yet" as a not-found case.                                                            |

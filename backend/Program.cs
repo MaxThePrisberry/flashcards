@@ -3,6 +3,7 @@ using Flashcards.APIs.Exceptions;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
 using Flashcards.APIs.Services.Auth;
+using Flashcards.APIs.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register services
 builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ReviewService>();
 var corsOrigin = builder.Configuration["Cors:AllowedOrigin"] ?? "http://localhost:3000";
 builder.Services.AddCors(options =>
 {
@@ -103,6 +105,7 @@ app.Use(async (context, next) =>
             NotFoundException => (404, ErrorCodes.NotFound),
             ConflictException => (409, ErrorCodes.Conflict),
             UnauthorizedException => (401, ErrorCodes.Unauthorized),
+            ValidationException => (400, ErrorCodes.ValidationError),
             _ => (500, ErrorCodes.ServerError)
         };
         context.Response.StatusCode = statusCode;

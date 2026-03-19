@@ -10,6 +10,8 @@ public class AppDbContext : DbContext
     public DbSet<Deck> Decks { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<Pair> Pairs { get; set; }
+    public DbSet<ReviewHistory> ReviewHistories { get; set; }
+    public DbSet<ReviewPair> ReviewPairs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,6 +21,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Deck>().ToTable("Deck");
         modelBuilder.Entity<Item>().ToTable("Item");
         modelBuilder.Entity<Pair>().ToTable("Pair");
+        modelBuilder.Entity<ReviewHistory>().ToTable("ReviewHistory");
+        modelBuilder.Entity<ReviewPair>().ToTable("ReviewPair");
 
         // ---- User ----
         modelBuilder.Entity<User>(entity =>
@@ -116,6 +120,45 @@ public class AppDbContext : DbContext
 
             // CHECK constraint: item1_id <> item2_id
             entity.HasCheckConstraint("different_items", "item1_id <> item2_id");
+        });
+
+        // ---- ReviewHistory ----
+        modelBuilder.Entity<ReviewHistory>(entity =>
+        {
+            entity.HasKey(rh => rh.HistoryId);
+            entity.Property(rh => rh.HistoryId).HasColumnName("history_id").ValueGeneratedOnAdd();
+            entity.Property(rh => rh.DeckId).HasColumnName("deck_id");
+            entity.Property(rh => rh.UserId).HasColumnName("user_id");
+            entity.Property(rh => rh.ReviewedAt).HasColumnName("reviewed_at").HasColumnType("timestamptz").HasDefaultValueSql("NOW()");
+
+            entity.HasOne(rh => rh.Deck)
+                  .WithMany()
+                  .HasForeignKey(rh => rh.DeckId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(rh => rh.User)
+                  .WithMany()
+                  .HasForeignKey(rh => rh.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ---- ReviewPair ----
+        modelBuilder.Entity<ReviewPair>(entity =>
+        {
+            entity.HasKey(rp => rp.ReviewPairId);
+            entity.Property(rp => rp.ReviewPairId).HasColumnName("review_pair_id");
+            entity.Property(rp => rp.HistoryId).HasColumnName("history_id");
+            entity.Property(rp => rp.PairId).HasColumnName("pair_id");
+
+            entity.HasOne(rp => rp.ReviewHistory)
+                  .WithMany(rh => rh.ReviewPairs)
+                  .HasForeignKey(rp => rp.HistoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(rp => rp.Pair)
+                  .WithMany()
+                  .HasForeignKey(rp => rp.PairId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
