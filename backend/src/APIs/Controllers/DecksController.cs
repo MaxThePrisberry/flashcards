@@ -4,7 +4,7 @@ using Flashcards.APIs.Requests.Decks;
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
-using Flashcards.APIs.Services;
+using Flashcards.APIs.Services.Reviews;
 using Flashcards.APIs.Exceptions;
 using System.Security.Claims;
 

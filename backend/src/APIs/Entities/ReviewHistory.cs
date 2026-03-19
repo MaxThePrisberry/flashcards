@@ -10,8 +10,7 @@ namespace Flashcards.APIs.Entities
     {
         [Key]
         [Column("history_id")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int HistoryId { get; set; }
+        public Guid HistoryId { get; set; }
 
         [Column("deck_id")]
         public Guid DeckId { get; set; }

@@ -8,11 +8,11 @@ namespace Flashcards.APIs.Entities
     public class ReviewPair
     {
         [Key]
-        [Column("review_pair_id")]
+        [Column("review_id")]
         public Guid ReviewPairId { get; set; }
 
         [Column("history_id")]
-        public int HistoryId { get; set; }
+        public Guid HistoryId { get; set; }
 
         [Column("pair_id")]
         public Guid PairId { get; set; }

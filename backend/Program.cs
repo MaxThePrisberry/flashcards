@@ -3,7 +3,7 @@ using Flashcards.APIs.Exceptions;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
 using Flashcards.APIs.Services.Auth;
-using Flashcards.APIs.Services;
+using Flashcards.APIs.Services.Reviews;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

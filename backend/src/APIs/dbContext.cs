@@ -126,7 +126,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ReviewHistory>(entity =>
         {
             entity.HasKey(rh => rh.HistoryId);
-            entity.Property(rh => rh.HistoryId).HasColumnName("history_id").ValueGeneratedOnAdd();
+            entity.Property(rh => rh.HistoryId).HasColumnName("history_id");
             entity.Property(rh => rh.DeckId).HasColumnName("deck_id");
             entity.Property(rh => rh.UserId).HasColumnName("user_id");
             entity.Property(rh => rh.ReviewedAt).HasColumnName("reviewed_at").HasColumnType("timestamptz").HasDefaultValueSql("NOW()");
@@ -146,7 +146,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ReviewPair>(entity =>
         {
             entity.HasKey(rp => rp.ReviewPairId);
-            entity.Property(rp => rp.ReviewPairId).HasColumnName("review_pair_id");
+            entity.Property(rp => rp.ReviewPairId).HasColumnName("review_id");
             entity.Property(rp => rp.HistoryId).HasColumnName("history_id");
             entity.Property(rp => rp.PairId).HasColumnName("pair_id");
 

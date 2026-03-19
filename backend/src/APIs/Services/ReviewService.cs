@@ -3,7 +3,7 @@ using Flashcards.APIs.Entities;
 using Flashcards.APIs.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Flashcards.APIs.Services {
+namespace Flashcards.APIs.Services.Reviews {
     public class ReviewService {
 
         private readonly AppDbContext _dbContext;
@@ -38,6 +38,7 @@ namespace Flashcards.APIs.Services {
 
             // Create ReviewHistory record
             var reviewHistory = new ReviewHistory {
+                HistoryId = Guid.NewGuid(),
                 DeckId = deckId,
                 UserId = userId,
                 ReviewedAt = DateTime.UtcNow
