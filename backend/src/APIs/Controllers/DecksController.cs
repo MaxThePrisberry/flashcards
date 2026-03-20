@@ -4,6 +4,7 @@ using Flashcards.APIs.Requests.Decks;
 using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
+using Flashcards.APIs.Services.Reviews;
 using Flashcards.APIs.Exceptions;
 using System.Security.Claims;
 
@@ -13,9 +14,11 @@ namespace Flashcards.APIs.Controllers {
     [Authorize]
     public class DecksController : ControllerBase {
         private readonly DeckService _deckService;
+        private readonly ReviewService _reviewService;
 
-        public DecksController(DeckService deckService) {
+        public DecksController(DeckService deckService, ReviewService reviewService) {
             _deckService = deckService;
+            _reviewService = reviewService;
         }
 
         [HttpGet]
@@ -52,6 +55,20 @@ namespace Flashcards.APIs.Controllers {
             var userId = GetUserId();
             await _deckService.DeleteAsync(id, userId);
             return NoContent();
+        }
+
+        [HttpPost("{id}/reviews")]
+        public async Task<ActionResult<ReviewSessionDTO>> SubmitReview(Guid id, [FromBody] SubmitReviewRequest request) {
+            var userId = GetUserId();
+            var result = await _reviewService.SubmitReviewAsync(id, userId, request.NeedsReview);
+            return CreatedAtAction(nameof(GetLatestReview), new { id }, result);
+        }
+
+        [HttpGet("{id}/reviews/latest")]
+        public async Task<ActionResult<ReviewSessionDTO>> GetLatestReview(Guid id) {
+            var userId = GetUserId();
+            var result = await _reviewService.GetLatestReviewAsync(id, userId);
+            return Ok(result);
         }
 
         private Guid GetUserId() {
