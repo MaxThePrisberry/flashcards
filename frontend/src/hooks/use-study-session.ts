@@ -3,12 +3,11 @@
 import { useMemo, useState } from "react";
 import type { CardDto } from "@/lib/types";
 
-export type StudyRating = "again" | "good" | "easy";
+export type StudyRating = "needsReview" | "gotIt";
 
 interface RatingCounts {
-  again: number;
-  good: number;
-  easy: number;
+  needsReview: number;
+  gotIt: number;
 }
 
 export function useStudySession(cards: CardDto[]) {
@@ -20,10 +19,10 @@ export function useStudySession(cards: CardDto[]) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [ratings, setRatings] = useState<RatingCounts>({
-    again: 0,
-    good: 0,
-    easy: 0,
+    needsReview: 0,
+    gotIt: 0,
   });
+  const [needsReviewIds, setNeedsReviewIds] = useState<string[]>([]);
 
   const totalCards = orderedCards.length;
   const currentCard = orderedCards[currentIndex] ?? null;
@@ -46,6 +45,10 @@ export function useStudySession(cards: CardDto[]) {
       [rating]: prev[rating] + 1,
     }));
 
+    if (rating === "needsReview") {
+      setNeedsReviewIds((prev) => [...prev, currentCard.id]);
+    }
+
     setIsFlipped(false);
     setCurrentIndex((prev) => prev + 1);
   }
@@ -54,10 +57,10 @@ export function useStudySession(cards: CardDto[]) {
     setCurrentIndex(0);
     setIsFlipped(false);
     setRatings({
-      again: 0,
-      good: 0,
-      easy: 0,
+      needsReview: 0,
+      gotIt: 0,
     });
+    setNeedsReviewIds([]);
   }
 
   return {
@@ -69,6 +72,7 @@ export function useStudySession(cards: CardDto[]) {
     completed,
     reviewedCount,
     ratings,
+    needsReviewIds,
     flipCard,
     rateCard,
     resetSession,

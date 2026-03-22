@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Brain, CheckCircle2, RotateCcw } from "lucide-react";
-import { getDeck } from "@/lib/api/decks";
+import { getDeck, submitDeckReview } from "@/lib/api/decks";
 import { ApiError } from "@/lib/api/api-client";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useStudySession, type StudyRating } from "@/hooks/use-study-session";
@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { DeckDetailDto } from "@/lib/types";
+import type { DeckDetailDto, ReviewSessionDto } from "@/lib/types";
 
 type CardPhase = "idle" | "exiting" | "entering";
 
@@ -34,6 +34,11 @@ export default function StudyDeckPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<CardPhase>("idle");
+  const [reviewSession, setReviewSession] = useState<ReviewSessionDto | null>(
+    null,
+  );
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const transitionTimeoutRef = useRef<number | null>(null);
   const enterFrameRef = useRef<number | null>(null);
@@ -84,6 +89,7 @@ export default function StudyDeckPage({
     completed,
     ratings,
     reviewedCount,
+    needsReviewIds,
     flipCard,
     rateCard,
     resetSession,
@@ -114,6 +120,16 @@ export default function StudyDeckPage({
     [completed, isFlipped, phase, rateCard],
   );
 
+  const handleResetSession = useCallback(() => {
+    setReviewSession(null);
+    setSubmittingReview(false);
+    setSubmitError(null);
+    resetSession();
+  }, [resetSession]);
+
+  const needsReviewCount =
+    reviewSession?.reviewCards.length ?? ratings.needsReview;
+
   useEffect(() => {
     if (completed || totalCards === 0) return;
 
@@ -133,19 +149,56 @@ export default function StudyDeckPage({
 
       if (event.key === "1") {
         event.preventDefault();
-        handleRate("again");
+        handleRate("needsReview");
       } else if (event.key === "2") {
         event.preventDefault();
-        handleRate("good");
-      } else if (event.key === "3") {
-        event.preventDefault();
-        handleRate("easy");
+        handleRate("gotIt");
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [completed, handleFlip, handleRate, isFlipped, totalCards]);
+
+  useEffect(() => {
+    if (!completed || !deck || reviewSession || submittingReview) return;
+
+    const deckId = deck.id;
+    let cancelled = false;
+
+    async function saveReviewSession() {
+      setSubmittingReview(true);
+      setSubmitError(null);
+
+      try {
+        const session = await submitDeckReview(deckId, {
+          needsReview: needsReviewIds,
+        });
+
+        if (!cancelled) {
+          setReviewSession(session);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setSubmitError(
+            err instanceof ApiError
+              ? err.message
+              : "Failed to save study session",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setSubmittingReview(false);
+        }
+      }
+    }
+
+    saveReviewSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [completed, deck, needsReviewIds, reviewSession, submittingReview]);
 
   if (authLoading || loading) {
     return <main className="p-10">Loading study session...</main>;
@@ -194,11 +247,9 @@ export default function StudyDeckPage({
         <div className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
           <span>Space / Enter to flip</span>
           <span>•</span>
-          <span>1 Needs Practice</span>
+          <span>1 Needs review</span>
           <span>•</span>
-          <span>2 Almost There</span>
-          <span>•</span>
-          <span>3 I Know It</span>
+          <span>2 Got it</span>
         </div>
       </div>
 
@@ -224,31 +275,36 @@ export default function StudyDeckPage({
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Card className="bg-background/60">
                 <CardHeader className="pb-2">
-                  <CardDescription>Needs Practice</CardDescription>
-                  <CardTitle className="text-3xl">{ratings.again}</CardTitle>
+                  <CardDescription>Needs review</CardDescription>
+                  <CardTitle className="text-3xl">{needsReviewCount}</CardTitle>
                 </CardHeader>
               </Card>
 
               <Card className="bg-background/60">
                 <CardHeader className="pb-2">
-                  <CardDescription>Almost There</CardDescription>
-                  <CardTitle className="text-3xl">{ratings.good}</CardTitle>
-                </CardHeader>
-              </Card>
-
-              <Card className="bg-background/60">
-                <CardHeader className="pb-2">
-                  <CardDescription>I Know It</CardDescription>
-                  <CardTitle className="text-3xl">{ratings.easy}</CardTitle>
+                  <CardDescription>Got it</CardDescription>
+                  <CardTitle className="text-3xl">{ratings.gotIt}</CardTitle>
                 </CardHeader>
               </Card>
             </div>
 
+            {submittingReview ? (
+              <p className="text-center text-sm text-muted-foreground">
+                Saving study session...
+              </p>
+            ) : null}
+
+            {submitError ? (
+              <p className="text-center text-sm text-destructive">
+                {submitError}
+              </p>
+            ) : null}
+
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
-              <Button onClick={resetSession} size="lg" className="gap-2">
+              <Button onClick={handleResetSession} size="lg" className="gap-2">
                 <RotateCcw className="h-4 w-4" />
                 Study again
               </Button>
