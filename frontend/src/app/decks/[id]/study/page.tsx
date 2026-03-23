@@ -38,8 +38,6 @@ export default function StudyDeckPage({
   const [reviewSession, setReviewSession] = useState<ReviewSessionDto | null>(
     null,
   );
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const hasSubmittedRef = useRef(false);
 
   const transitionTimeoutRef = useRef<number | null>(null);
@@ -125,8 +123,6 @@ export default function StudyDeckPage({
   const handleResetSession = useCallback(() => {
     hasSubmittedRef.current = false;
     setReviewSession(null);
-    setSubmittingReview(false);
-    setSubmitError(null);
     resetSession();
   }, [resetSession]);
 
@@ -171,9 +167,6 @@ export default function StudyDeckPage({
     let cancelled = false;
 
     async function saveReviewSession() {
-      setSubmittingReview(true);
-      setSubmitError(null);
-
       try {
         const session = await submitDeckReview(deckId, {
           needsReview: needsReviewIds,
@@ -189,12 +182,7 @@ export default function StudyDeckPage({
             err instanceof ApiError
               ? err.message
               : "Failed to save study session";
-          setSubmitError(message);
           toast.error(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setSubmittingReview(false);
         }
       }
     }
