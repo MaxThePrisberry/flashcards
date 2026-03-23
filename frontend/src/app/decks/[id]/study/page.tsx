@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Brain, CheckCircle2, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import { getDeck, submitDeckReview } from "@/lib/api/decks";
 import { ApiError } from "@/lib/api/api-client";
 import { useRequireAuth } from "@/hooks/use-require-auth";
@@ -39,6 +40,7 @@ export default function StudyDeckPage({
   );
   const [submittingReview, setSubmittingReview] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const hasSubmittedRef = useRef(false);
 
   const transitionTimeoutRef = useRef<number | null>(null);
   const enterFrameRef = useRef<number | null>(null);
@@ -121,6 +123,7 @@ export default function StudyDeckPage({
   );
 
   const handleResetSession = useCallback(() => {
+    hasSubmittedRef.current = false;
     setReviewSession(null);
     setSubmittingReview(false);
     setSubmitError(null);
@@ -161,9 +164,9 @@ export default function StudyDeckPage({
   }, [completed, handleFlip, handleRate, isFlipped, totalCards]);
 
   useEffect(() => {
-    if (!completed || !deck || reviewSession || submittingReview || submitError)
-      return;
+    if (!completed || !deck || hasSubmittedRef.current) return;
 
+    hasSubmittedRef.current = true;
     const deckId = deck.id;
     let cancelled = false;
 
@@ -178,14 +181,16 @@ export default function StudyDeckPage({
 
         if (!cancelled) {
           setReviewSession(session);
+          toast.success("Study session saved!");
         }
       } catch (err) {
         if (!cancelled) {
-          setSubmitError(
+          const message =
             err instanceof ApiError
               ? err.message
-              : "Failed to save study session",
-          );
+              : "Failed to save study session";
+          setSubmitError(message);
+          toast.error(message);
         }
       } finally {
         if (!cancelled) {
@@ -199,7 +204,7 @@ export default function StudyDeckPage({
     return () => {
       cancelled = true;
     };
-  }, [completed, deck, needsReviewIds, reviewSession, submitError, submittingReview]);
+  }, [completed, deck, needsReviewIds]);
 
   if (authLoading || loading) {
     return <main className="p-10">Loading study session...</main>;
@@ -291,18 +296,6 @@ export default function StudyDeckPage({
                 </CardHeader>
               </Card>
             </div>
-
-            {submittingReview ? (
-              <p className="text-center text-sm text-muted-foreground">
-                Saving study session...
-              </p>
-            ) : null}
-
-            {submitError ? (
-              <p className="text-center text-sm text-destructive">
-                {submitError}
-              </p>
-            ) : null}
 
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <Button onClick={handleResetSession} size="lg" className="gap-2">
