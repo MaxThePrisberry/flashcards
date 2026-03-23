@@ -161,7 +161,8 @@ export default function StudyDeckPage({
   }, [completed, handleFlip, handleRate, isFlipped, totalCards]);
 
   useEffect(() => {
-    if (!completed || !deck || reviewSession || submittingReview) return;
+    if (!completed || !deck || reviewSession || submittingReview || submitError)
+      return;
 
     const deckId = deck.id;
     let cancelled = false;
@@ -198,7 +199,7 @@ export default function StudyDeckPage({
     return () => {
       cancelled = true;
     };
-  }, [completed, deck, needsReviewIds, reviewSession, submittingReview]);
+  }, [completed, deck, needsReviewIds, reviewSession, submitError, submittingReview]);
 
   if (authLoading || loading) {
     return <main className="p-10">Loading study session...</main>;
