@@ -49,7 +49,7 @@ export default function EditDeckPage({
   async function handleSubmit(data: {
     title: string;
     description: string;
-    cards: { term: string; definition: string }[];
+    cards: { term: string; definition: string; termType: string; definitionType: string }[];
   }) {
     try {
       await updateDeck(id, data);
@@ -94,6 +94,8 @@ export default function EditDeckPage({
           cards: deck.cards.map((c) => ({
             term: c.term,
             definition: c.definition,
+            termType: c.termType,
+            definitionType: c.definitionType,
           })),
         }}
         onSubmit={handleSubmit}

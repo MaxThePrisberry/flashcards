@@ -48,6 +48,8 @@ export interface CardDto {
   term: string;
   definition: string;
   position: number;
+  termType: string;
+  definitionType: string;
 }
 
 export interface CreateDeckRequest {
@@ -59,6 +61,8 @@ export interface CreateDeckRequest {
 export interface CreateCardRequest {
   term: string;
   definition: string;
+  termType?: string;
+  definitionType?: string;
 }
 
 export interface UpdateDeckRequest {
@@ -70,6 +74,8 @@ export interface UpdateDeckRequest {
 export interface UpdateCardRequest {
   term: string;
   definition: string;
+  termType?: string;
+  definitionType?: string;
 }
 
 // --- Tests ---

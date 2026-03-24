@@ -291,10 +291,20 @@ export default function DeckDetailPage({
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">
                     Card {index + 1}
                   </div>
-                  <CardTitle className="text-lg">{card.term}</CardTitle>
-                  <CardDescription className="line-clamp-3 text-sm leading-6 text-foreground/80">
-                    {card.definition}
-                  </CardDescription>
+                  {card.termType === "image" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={card.term} alt="Term" className="max-h-32 w-full rounded object-contain" />
+                  ) : (
+                    <CardTitle className="text-lg">{card.term}</CardTitle>
+                  )}
+                  {card.definitionType === "image" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={card.definition} alt="Definition" className="max-h-24 w-full rounded object-contain opacity-80" />
+                  ) : (
+                    <CardDescription className="line-clamp-3 text-sm leading-6 text-foreground/80">
+                      {card.definition}
+                    </CardDescription>
+                  )}
                 </CardHeader>
               </Card>
             ))}

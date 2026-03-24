@@ -4,7 +4,9 @@ namespace Flashcards.APIs.DTOs.Decks {
         Guid Id,
         string Term,
         string Definition,
-        int Position
+        int Position,
+        string TermType = "text",
+        string DefinitionType = "text"
     );
 
 }
