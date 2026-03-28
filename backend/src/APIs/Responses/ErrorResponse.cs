@@ -8,6 +8,7 @@ namespace Flashcards.APIs.Responses {
         public const string NotFound = "not_found";
         public const string ValidationError = "validation_error";
         public const string ServerError = "server_error";
+        public const string LlmUnavailable = "llm_unavailable";
     }
 
     public record ErrorResponse(
