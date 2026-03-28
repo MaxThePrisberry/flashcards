@@ -21,12 +21,12 @@ namespace Flashcards.APIs.Services.Gemini {
             _model = configuration["Gemini:Model"] ?? "gemini-3.1-flash-lite-preview";
         }
 
-        public async Task<List<CardDistractors>> GenerateDistractorsAsync(List<CardInfo> cards) {
+        public async Task<List<CardDistractors>> GenerateDistractorsAsync(string deckTitle, string deckDescription, List<CardInfo> cards) {
             if (string.IsNullOrWhiteSpace(_apiKey)) {
                 throw new LlmUnavailableException("Gemini API key is not configured. Set the GEMINI_API_KEY environment variable.");
             }
 
-            var prompt = BuildPrompt(cards);
+            var prompt = BuildPrompt(deckTitle, deckDescription, cards);
 
             var requestBody = new {
                 contents = new[] {
@@ -67,20 +67,28 @@ namespace Flashcards.APIs.Services.Gemini {
             return ParseResponse(responseBody, cards);
         }
 
-        private static string BuildPrompt(List<CardInfo> cards) {
+        private static string BuildPrompt(string deckTitle, string deckDescription, List<CardInfo> cards) {
             var sb = new StringBuilder();
             sb.AppendLine("You are generating multiple-choice distractors for a flashcard quiz.");
             sb.AppendLine();
-            sb.AppendLine("For each card below, generate exactly 3 WRONG answers for each direction:");
-            sb.AppendLine("- 3 fake definitions (for when the term is shown as the question)");
-            sb.AppendLine("- 3 fake terms (for when the definition is shown as the question)");
+            sb.AppendLine($"Deck title: \"{deckTitle}\"");
+            if (!string.IsNullOrWhiteSpace(deckDescription)) {
+                sb.AppendLine($"Deck description: \"{deckDescription}\"");
+            }
+            sb.AppendLine();
+            sb.AppendLine("For each card below, generate exactly 5 WRONG answers for each direction:");
+            sb.AppendLine("- 5 fake definitions (for when the term is shown as the question)");
+            sb.AppendLine("- 5 fake terms (for when the definition is shown as the question)");
             sb.AppendLine();
             sb.AppendLine("RULES:");
-            sb.AppendLine("- Every distractor MUST be provably, factually WRONG — not \"less correct\" or \"debatable\"");
+            sb.AppendLine("- Every distractor MUST be factually INCORRECT for the term or definition it is paired with");
+            sb.AppendLine("- Distractors must NOT be true statements about the term or definition — e.g. if the term is \"George Washington\" and the answer is \"1st President\", do NOT use \"Commander of the Continental Army\" because that is also true about George Washington");
+            sb.AppendLine("- All 5 distractors for a given card and direction MUST be unique — no duplicates or near-duplicates");
             sb.AppendLine("- Distractors must be plausible enough to test real knowledge");
             sb.AppendLine("- Match the style, length, and domain of the real answers");
             sb.AppendLine("- Distractors MUST NOT match any other term or definition listed below");
-            sb.AppendLine("- You may adapt concepts from the deck to create plausible distractors");
+            sb.AppendLine("- Prefer generating novel distractors from the broader subject domain rather than recycling from other cards in the deck — only borrow from other cards when it fits naturally and wouldn't make the correct answer obvious");
+            sb.AppendLine("- The audience is English-speaking — distractors must test subject knowledge, not language ability (e.g. for foreign language vocabulary, generate plausible wrong translations, not misspelled English words)");
             sb.AppendLine();
             sb.AppendLine("Cards:");
 
@@ -90,7 +98,7 @@ namespace Flashcards.APIs.Services.Gemini {
 
             sb.AppendLine();
             sb.AppendLine("Respond with ONLY valid JSON in this exact format:");
-            sb.AppendLine("{\"cards\":[{\"cardIndex\":1,\"fakeDefinitions\":[\"...\",\"...\",\"...\"],\"fakeTerms\":[\"...\",\"...\",\"...\"]}, ...]}");
+            sb.AppendLine("{\"cards\":[{\"cardIndex\":1,\"fakeDefinitions\":[\"...\",\"...\",\"...\",\"...\",\"...\"],\"fakeTerms\":[\"...\",\"...\",\"...\",\"...\",\"...\"]}, ...]}");
 
             return sb.ToString();
         }

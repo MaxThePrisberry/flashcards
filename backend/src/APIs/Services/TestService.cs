@@ -41,11 +41,12 @@ namespace Flashcards.APIs.Services.Tests {
                 throw new ValidationException("Deck has no cards to generate a test from.");
             }
 
-            // Check distractor cache
+            // Check distractor cache (expire after 24 hours)
             var pairIds = pairs.Select(p => p.PairId).ToList();
+            var cacheExpiry = DateTime.UtcNow.AddHours(-24);
             var cachedDistractors = await _dbContext.Distractors
                 .AsNoTracking()
-                .Where(d => pairIds.Contains(d.PairId))
+                .Where(d => pairIds.Contains(d.PairId) && d.CreatedAt > cacheExpiry)
                 .ToListAsync();
 
             var distractorsByPair = cachedDistractors
@@ -60,7 +61,7 @@ namespace Flashcards.APIs.Services.Tests {
                 .ToList();
 
             if (uncachedPairs.Count > 0) {
-                await GenerateAndCacheDistractors(uncachedPairs, distractorsByPair);
+                await GenerateAndCacheDistractors(deck.Title, deck.Description, uncachedPairs, distractorsByPair);
             }
 
             // Build test questions
@@ -75,6 +76,7 @@ namespace Flashcards.APIs.Services.Tests {
         }
 
         private async Task GenerateAndCacheDistractors(
+            string deckTitle, string deckDescription,
             List<Pair> uncachedPairs,
             Dictionary<Guid, List<Distractor>> distractorsByPair) {
 
@@ -84,7 +86,7 @@ namespace Flashcards.APIs.Services.Tests {
                 p.Item2.Value
             )).ToList();
 
-            var generated = await _geminiService.GenerateDistractorsAsync(cardInfos);
+            var generated = await _geminiService.GenerateDistractorsAsync(deckTitle, deckDescription, cardInfos);
 
             // Map card index back to pair — the LLM may return cards in any order
             var indexToPair = new Dictionary<int, Pair>();

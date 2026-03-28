@@ -1,7 +1,7 @@
 namespace Flashcards.APIs.Services.Gemini {
 
     public interface IGeminiService {
-        Task<List<CardDistractors>> GenerateDistractorsAsync(List<CardInfo> cards);
+        Task<List<CardDistractors>> GenerateDistractorsAsync(string deckTitle, string deckDescription, List<CardInfo> cards);
     }
 
     public record CardInfo(int Index, string Term, string Definition);

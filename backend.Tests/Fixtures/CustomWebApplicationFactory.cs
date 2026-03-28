@@ -10,7 +10,7 @@ public class FakeGeminiService : IGeminiService
 {
     public bool ShouldFail { get; set; }
 
-    public Task<List<CardDistractors>> GenerateDistractorsAsync(List<CardInfo> cards)
+    public Task<List<CardDistractors>> GenerateDistractorsAsync(string deckTitle, string deckDescription, List<CardInfo> cards)
     {
         if (ShouldFail)
             throw new Flashcards.APIs.Exceptions.LlmUnavailableException("Fake LLM failure for testing.");
