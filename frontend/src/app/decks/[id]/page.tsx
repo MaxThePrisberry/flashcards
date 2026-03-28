@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { use, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Brain, Clock3, Layers3, RefreshCcw } from "lucide-react";
+import { ArrowRight, Brain, ClipboardCheck, Clock3, Layers3, RefreshCcw } from "lucide-react";
 import { getDeck, getLatestReview } from "@/lib/api/decks";
 import { ApiError } from "@/lib/api/api-client";
 import { useRequireAuth } from "@/hooks/use-require-auth";
@@ -130,6 +130,13 @@ export default function DeckDetailPage({
           <div className="flex shrink-0 items-center gap-3">
             <Button asChild variant="outline">
               <Link href={`/decks/${deck.id}/edit`}>Edit Deck</Link>
+            </Button>
+
+            <Button asChild variant="secondary" className="gap-2">
+              <Link href={`/decks/${deck.id}/test`}>
+                <ClipboardCheck className="h-4 w-4" />
+                Take Test
+              </Link>
             </Button>
 
             <Button asChild size="lg" className="gap-2">

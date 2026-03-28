@@ -5,6 +5,7 @@ import type {
   UpdateDeckRequest,
   PaginatedResponse,
   SubmitReviewRequest,
+  TestResponse,
   ReviewSessionDto,
 } from "@/lib/types";
 import { apiFetch } from "@/lib/api/api-client";
@@ -55,6 +56,14 @@ export async function deleteDeck(id: string): Promise<void> {
   await apiFetch(`/api/decks/${id}`, {
     method: "DELETE",
   });
+}
+
+export async function generateTest(id: string, signal?: AbortSignal): Promise<TestResponse> {
+  const res = await apiFetch(`/api/decks/${id}/test`, {
+    method: "POST",
+    signal,
+  });
+  return res.json();
 }
 
 export async function submitDeckReview(
