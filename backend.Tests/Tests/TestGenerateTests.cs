@@ -19,7 +19,7 @@ public class TestGenerateTests
         _fixture = fixture;
         _client = fixture.Client;
         // Reset fake service state before each test
-        fixture.Factory.FakeOpenAi.ShouldFail = false;
+        fixture.Factory.FakeGemini.ShouldFail = false;
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class TestGenerateTests
         response1.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Now make the LLM fail — second call should still work from cache
-        _fixture.Factory.FakeOpenAi.ShouldFail = true;
+        _fixture.Factory.FakeGemini.ShouldFail = true;
 
         var request2 = TestHelper.AuthRequest(HttpMethod.Post, $"/api/decks/{deck.Id}/test", token);
         var response2 = await _client.SendAsync(request2);
@@ -167,7 +167,7 @@ public class TestGenerateTests
         editResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Make LLM fail — this should fail because cache was cleared
-        _fixture.Factory.FakeOpenAi.ShouldFail = true;
+        _fixture.Factory.FakeGemini.ShouldFail = true;
 
         var request2 = TestHelper.AuthRequest(HttpMethod.Post, $"/api/decks/{deck.Id}/test", token);
         var response2 = await _client.SendAsync(request2);
@@ -223,7 +223,7 @@ public class TestGenerateTests
                 new { term = "Fail", definition = "Test" }
             });
 
-        _fixture.Factory.FakeOpenAi.ShouldFail = true;
+        _fixture.Factory.FakeGemini.ShouldFail = true;
 
         var request = TestHelper.AuthRequest(HttpMethod.Post, $"/api/decks/{deck.Id}/test", token);
         var response = await _client.SendAsync(request);

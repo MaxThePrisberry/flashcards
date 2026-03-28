@@ -3,9 +3,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flashcards.APIs.Exceptions;
 
-namespace Flashcards.APIs.Services.OpenAi {
+namespace Flashcards.APIs.Services.Gemini {
 
-    public class OpenAiService : IOpenAiService {
+    public class GeminiService : IGeminiService {
 
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
@@ -15,48 +15,52 @@ namespace Flashcards.APIs.Services.OpenAi {
             PropertyNameCaseInsensitive = true
         };
 
-        public OpenAiService(HttpClient httpClient, IConfiguration configuration) {
+        public GeminiService(HttpClient httpClient, IConfiguration configuration) {
             _httpClient = httpClient;
-            // Store the key but don't throw here — validation happens lazily in GenerateDistractorsAsync
-            // so that non-test deck endpoints still work when the key is unset.
-            _apiKey = configuration["OpenAI:ApiKey"] ?? "";
-            _model = configuration["OpenAI:Model"] ?? "gpt-5-nano-2025-08-07";
+            _apiKey = configuration["Gemini:ApiKey"] ?? "";
+            _model = configuration["Gemini:Model"] ?? "gemini-3.1-flash-lite-preview";
         }
 
         public async Task<List<CardDistractors>> GenerateDistractorsAsync(List<CardInfo> cards) {
             if (string.IsNullOrWhiteSpace(_apiKey)) {
-                throw new LlmUnavailableException("OpenAI API key is not configured. Set the OPENAI_API_KEY environment variable.");
+                throw new LlmUnavailableException("Gemini API key is not configured. Set the GEMINI_API_KEY environment variable.");
             }
 
             var prompt = BuildPrompt(cards);
 
             var requestBody = new {
-                model = _model,
-                messages = new[] {
-                    new { role = "system", content = "You are a helpful assistant that generates multiple-choice distractors for flashcard quizzes. You respond with ONLY valid JSON, no markdown formatting." },
-                    new { role = "user", content = prompt }
+                contents = new[] {
+                    new {
+                        role = "user",
+                        parts = new[] { new { text = prompt } }
+                    }
                 },
-                temperature = 0.8,
-                response_format = new { type = "json_object" }
+                systemInstruction = new {
+                    parts = new[] { new { text = "You are a helpful assistant that generates multiple-choice distractors for flashcard quizzes. You respond with ONLY valid JSON, no markdown formatting." } }
+                },
+                generationConfig = new {
+                    temperature = 0.8,
+                    responseMimeType = "application/json"
+                }
             };
 
             var json = JsonSerializer.Serialize(requestBody);
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions") {
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+            var request = new HttpRequestMessage(HttpMethod.Post, url) {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
-            request.Headers.Add("Authorization", $"Bearer {_apiKey}");
 
             HttpResponseMessage response;
             try {
                 response = await _httpClient.SendAsync(request);
             } catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException) {
-                throw new LlmUnavailableException($"Failed to reach OpenAI API: {ex.Message}");
+                throw new LlmUnavailableException($"Failed to reach Gemini API: {ex.Message}");
             }
 
             if (!response.IsSuccessStatusCode) {
                 var errorBody = await response.Content.ReadAsStringAsync();
                 throw new LlmUnavailableException(
-                    $"OpenAI API returned {(int)response.StatusCode}: {errorBody}");
+                    $"Gemini API returned {(int)response.StatusCode}: {errorBody}");
             }
 
             var responseBody = await response.Content.ReadAsStringAsync();
@@ -92,17 +96,16 @@ namespace Flashcards.APIs.Services.OpenAi {
         }
 
         private static List<CardDistractors> ParseResponse(string responseBody, List<CardInfo> cards) {
-            // Parse the OpenAI chat completion response
-            OpenAiChatResponse? chatResponse;
+            GeminiResponse? geminiResponse;
             try {
-                chatResponse = JsonSerializer.Deserialize<OpenAiChatResponse>(responseBody, JsonOptions);
+                geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(responseBody, JsonOptions);
             } catch (JsonException ex) {
-                throw new LlmUnavailableException($"Failed to parse OpenAI response: {ex.Message}");
+                throw new LlmUnavailableException($"Failed to parse Gemini response: {ex.Message}");
             }
 
-            var content = chatResponse?.Choices?.FirstOrDefault()?.Message?.Content;
+            var content = geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
             if (string.IsNullOrWhiteSpace(content)) {
-                throw new LlmUnavailableException("OpenAI returned an empty response.");
+                throw new LlmUnavailableException("Gemini returned an empty response.");
             }
 
             // Parse the inner JSON content
@@ -114,7 +117,7 @@ namespace Flashcards.APIs.Services.OpenAi {
             }
 
             if (distractorResponse?.Cards == null || distractorResponse.Cards.Count == 0) {
-                throw new LlmUnavailableException("OpenAI returned no distractor data.");
+                throw new LlmUnavailableException("Gemini returned no distractor data.");
             }
 
             // Build a set of all real terms and definitions for validation
@@ -147,20 +150,25 @@ namespace Flashcards.APIs.Services.OpenAi {
             return result;
         }
 
-        // Internal DTOs for OpenAI response parsing
-        private class OpenAiChatResponse {
-            [JsonPropertyName("choices")]
-            public List<Choice>? Choices { get; set; }
+        // Internal DTOs for Gemini response parsing
+        private class GeminiResponse {
+            [JsonPropertyName("candidates")]
+            public List<Candidate>? Candidates { get; set; }
         }
 
-        private class Choice {
-            [JsonPropertyName("message")]
-            public Message? Message { get; set; }
-        }
-
-        private class Message {
+        private class Candidate {
             [JsonPropertyName("content")]
-            public string? Content { get; set; }
+            public ContentBody? Content { get; set; }
+        }
+
+        private class ContentBody {
+            [JsonPropertyName("parts")]
+            public List<Part>? Parts { get; set; }
+        }
+
+        private class Part {
+            [JsonPropertyName("text")]
+            public string? Text { get; set; }
         }
 
         private class DistractorResponse {

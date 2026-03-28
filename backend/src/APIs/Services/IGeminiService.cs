@@ -1,6 +1,6 @@
-namespace Flashcards.APIs.Services.OpenAi {
+namespace Flashcards.APIs.Services.Gemini {
 
-    public interface IOpenAiService {
+    public interface IGeminiService {
         Task<List<CardDistractors>> GenerateDistractorsAsync(List<CardInfo> cards);
     }
 

@@ -1,7 +1,7 @@
 using Flashcards.APIs.DTOs.Test;
 using Flashcards.APIs.Entities;
 using Flashcards.APIs.Exceptions;
-using Flashcards.APIs.Services.OpenAi;
+using Flashcards.APIs.Services.Gemini;
 using Microsoft.EntityFrameworkCore;
 
 namespace Flashcards.APIs.Services.Tests {
@@ -9,13 +9,13 @@ namespace Flashcards.APIs.Services.Tests {
     public class TestService {
 
         private readonly AppDbContext _dbContext;
-        private readonly IOpenAiService _openAiService;
+        private readonly IGeminiService _geminiService;
         // Random.Shared is thread-safe in .NET 6+
         private static Random Rng => Random.Shared;
 
-        public TestService(AppDbContext dbContext, IOpenAiService openAiService) {
+        public TestService(AppDbContext dbContext, IGeminiService geminiService) {
             _dbContext = dbContext;
-            _openAiService = openAiService;
+            _geminiService = geminiService;
         }
 
         public async Task<TestResponse> GenerateTestAsync(Guid deckId, Guid userId) {
@@ -84,7 +84,7 @@ namespace Flashcards.APIs.Services.Tests {
                 p.Item2.Value
             )).ToList();
 
-            var generated = await _openAiService.GenerateDistractorsAsync(cardInfos);
+            var generated = await _geminiService.GenerateDistractorsAsync(cardInfos);
 
             // Map card index back to pair — the LLM may return cards in any order
             var indexToPair = new Dictionary<int, Pair>();

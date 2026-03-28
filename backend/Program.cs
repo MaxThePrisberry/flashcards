@@ -5,7 +5,7 @@ using Flashcards.APIs.Services.Decks;
 using Flashcards.APIs.Services.Auth;
 using Flashcards.APIs.Services.Reviews;
 using Flashcards.APIs.Services.Tests;
-using Flashcards.APIs.Services.OpenAi;
+using Flashcards.APIs.Services.Gemini;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -75,10 +75,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ReviewService>();
-builder.Services.AddHttpClient<OpenAiService>(client => {
+builder.Services.AddHttpClient<GeminiService>(client => {
     client.Timeout = TimeSpan.FromSeconds(60);
 });
-builder.Services.AddScoped<IOpenAiService, OpenAiService>();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<TestService>();
 var corsOrigin = builder.Configuration["Cors:AllowedOrigin"] ?? "http://localhost:3000";
 builder.Services.AddCors(options =>

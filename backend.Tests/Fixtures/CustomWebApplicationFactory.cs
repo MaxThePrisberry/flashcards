@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Flashcards.APIs.Services.OpenAi;
+using Flashcards.APIs.Services.Gemini;
 
 namespace FlashcardsApi.Tests.Fixtures;
 
-public class FakeOpenAiService : IOpenAiService
+public class FakeGeminiService : IGeminiService
 {
     public bool ShouldFail { get; set; }
 
@@ -27,7 +27,7 @@ public class FakeOpenAiService : IOpenAiService
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    public FakeOpenAiService FakeOpenAi { get; } = new();
+    public FakeGeminiService FakeGemini { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -46,13 +46,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
-            // Replace OpenAI service with fake for testing
-            var openAiDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(IOpenAiService));
-            if (openAiDescriptor != null)
-                services.Remove(openAiDescriptor);
+            // Replace Gemini service with fake for testing
+            var geminiDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(IGeminiService));
+            if (geminiDescriptor != null)
+                services.Remove(geminiDescriptor);
 
-            services.AddSingleton<IOpenAiService>(FakeOpenAi);
+            services.AddSingleton<IGeminiService>(FakeGemini);
         });
 
         builder.UseEnvironment("Development");
