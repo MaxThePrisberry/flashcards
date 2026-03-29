@@ -14,60 +14,25 @@ namespace Flashcards.APIs.Services.Decks {
             _dbContext = dbContext;
         }
 
-        public async Task<PaginatedResponse<DeckSummaryDTO>> GetDecksAsync(Guid userId, int page, int pageSize) {
-            // ============ DUMMY DATA FOR TESTING ============
-            /*
+        public async Task<PaginatedResponse<DeckSummaryDTO>> GetDecksAsync(Guid userId, int page, int pageSize, string? searchTerm = null) {
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 100);
 
-            // Create some dummy decks
-            var allDummyDecks = new List<DeckSummaryDTO> {
-                new DeckSummaryDTO(
-                    Id: Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                    Title: "Spanish Vocabulary",
-                    Description: "Common Spanish words and phrases",
-                    CardCount: 25,
-                    CreatedAt: DateTime.UtcNow.AddDays(-10),
-                    UpdatedAt: DateTime.UtcNow.AddDays(-2)
-                ),
-                new DeckSummaryDTO(
-                    Id: Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                    Title: "JavaScript Concepts",
-                    Description: "Core JavaScript programming concepts",
-                    CardCount: 42,
-                    CreatedAt: DateTime.UtcNow.AddDays(-7),
-                    UpdatedAt: DateTime.UtcNow.AddDays(-1)
-                ),
-                new DeckSummaryDTO(
-                    Id: Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                    Title: "Biology Terms",
-                    Description: "Important biology terminology",
-                    CardCount: 18,
-                    CreatedAt: DateTime.UtcNow.AddDays(-5),
-                    UpdatedAt: DateTime.UtcNow
-                )
-            };
+            // Build base query
+            var query = _dbContext.Decks.AsNoTracking();
 
-            var totalCount = allDummyDecks.Count;
-            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-            var paginatedDecks = allDummyDecks
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            await Task.CompletedTask; // Keep async signature
-
-            return new PaginatedResponse<DeckSummaryDTO>(paginatedDecks, page, pageSize, totalCount, totalPages);
-            */
-
-            // ============ REAL IMPLEMENTATION ============
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, 1, 100);
-
-            var query = _dbContext.Decks
-                .AsNoTracking()
-                .Where(d => d.UserId == userId);
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm)) {
+                // SEARCH MODE: Public decks + your private decks matching the search term
+                var lowerSearch = searchTerm.Trim().ToLower();
+                query = query.Where(d =>
+                    (d.IsPublic || d.UserId == userId) &&
+                    d.Title.ToLower().Contains(lowerSearch)
+                );
+            } else {
+                // DEFAULT MODE: Only your decks (no search)
+                query = query.Where(d => d.UserId == userId);
+            }
 
             var totalCount = await query.CountAsync();
             var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);

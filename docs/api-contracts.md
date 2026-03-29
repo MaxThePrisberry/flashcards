@@ -273,14 +273,15 @@ There are no separate card endpoints. Cards are components of a deck, not indepe
 
 ### GET /api/decks
 
-List the authenticated user's decks with pagination.
+List decks with pagination. Without a search term, returns only the authenticated user's decks. With a search term, returns all public decks matching the search term plus the user's own private decks that match.
 
 **Query Parameters**
 
-| Parameter  | Type      | Default | Description               |
-| ---------- | --------- | ------- | ------------------------- |
-| `page`     | `integer` | `1`     | Page number (1-indexed).  |
-| `pageSize` | `integer` | `20`    | Items per page (max 100). |
+| Parameter  | Type      | Default | Description                                                                                                    |
+| ---------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| `page`     | `integer` | `1`     | Page number (1-indexed).                                                                                       |
+| `pageSize` | `integer` | `20`    | Items per page (max 100).                                                                                      |
+| `search`   | `string`  | (none)  | Optional search term to filter by deck title (case-insensitive substring match). Enables discovery of public decks. |
 
 **Response — PaginatedResponse\<DeckSummaryDto\>** `200 OK`
 
@@ -330,7 +331,7 @@ List the authenticated user's decks with pagination.
 | ------ | -------------- | ---------------------- |
 | 401    | `unauthorized` | Missing or invalid JWT |
 
-**Design Rationale.** `DeckSummaryDto` is used in list/grid views and sends `cardCount` (an integer) instead of the full card array. This keeps list payloads small: 50 decks times a few fields, rather than 50 decks times N cards each. Pagination via `PaginatedResponse<T>` prevents unbounded payloads as users accumulate decks. Standard offset-based pagination is sufficient for the expected dataset sizes.
+**Design Rationale.** `DeckSummaryDto` is used in list/grid views and sends `cardCount` (an integer) instead of the full card array. This keeps list payloads small: 50 decks times a few fields, rather than 50 decks times N cards each. Pagination via `PaginatedResponse<T>` prevents unbounded payloads as users accumulate decks. Standard offset-based pagination is sufficient for the expected dataset sizes. The optional `search` parameter enables deck discovery: when provided, it searches public decks from all users plus the authenticated user's own private decks, making it easy to find study materials while respecting privacy settings.
 
 ---
 
@@ -934,3 +935,5 @@ public record ReviewSessionDto(
 | `needsReview` is card IDs only             | Small request payload. Server looks up full card details and returns them, so the frontend gets everything needed for a follow-up drill in one response. |
 | Empty `needsReview` is valid               | Records a perfect-score session. No special "perfect" endpoint needed.                                                                                   |
 | GET latest returns 404 if no sessions      | Keeps the response shape non-nullable. Frontend handles "no history yet" as a not-found case.                                                            |
+| Optional `search` parameter on GET /api/decks | Single endpoint serves dual purpose: without search returns user's decks (management), with search enables discovery of public decks. Simpler than separate endpoints. |
+| Search includes public + user's private decks | Balances discovery (find others' public decks) with utility (still find your own private decks). More flexible than public-only search. |

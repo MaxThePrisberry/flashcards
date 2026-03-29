@@ -23,9 +23,11 @@ namespace Flashcards.APIs.Controllers {
 
         [HttpGet]
         public async Task<ActionResult<PaginatedResponse<DeckSummaryDTO>>> GetDecks(
-            [FromQuery] int page = 1, [FromQuery] int pageSize = 20) {
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? search = null) {
             var userId = GetUserId();
-            var result = await _deckService.GetDecksAsync(userId, page, pageSize);
+            var result = await _deckService.GetDecksAsync(userId, page, pageSize, search);
             return Ok(result);
         }
 
