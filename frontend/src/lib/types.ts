@@ -72,6 +72,17 @@ export interface UpdateCardRequest {
   definition: string;
 }
 
+export interface SubmitReviewRequest {
+  needsReview: string[];
+}
+
+export interface ReviewSessionDto {
+  sessionId: string;
+  deckId: string;
+  reviewedAt: string;
+  reviewCards: CardDto[];
+}
+
 // --- Pagination ---
 
 export interface PaginatedResponse<T> {

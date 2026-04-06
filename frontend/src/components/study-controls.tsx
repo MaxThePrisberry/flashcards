@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCcw, Check, Sparkles } from "lucide-react";
+import { Check, RefreshCcw } from "lucide-react";
 import type { StudyRating } from "@/hooks/use-study-session";
 import { Button } from "@/components/ui/button";
 
@@ -14,36 +14,26 @@ export default function StudyControls({
   disabled = false,
 }: StudyControlsProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2">
       <Button
         variant="outline"
         size="lg"
-        onClick={() => onRate("again")}
+        onClick={() => onRate("needsReview")}
         disabled={disabled}
         className="gap-2"
       >
         <RefreshCcw className="h-4 w-4" />
-        Needs Practice
+        Needs review
       </Button>
 
       <Button
-        variant="secondary"
         size="lg"
-        onClick={() => onRate("good")}
+        onClick={() => onRate("gotIt")}
         disabled={disabled}
         className="gap-2"
       >
         <Check className="h-4 w-4" />
-        Almost There
-      </Button>
-
-      <Button
-        size="lg"
-        onClick={() => onRate("easy")}
-        disabled={disabled}
-        className="gap-2"
-      >
-        <Sparkles className="h-4 w-4" />I Know It
+        Got it
       </Button>
     </div>
   );
