@@ -16,4 +16,8 @@ namespace Flashcards.APIs.Exceptions {
         public ValidationException(string message) : base(message) { }
     }
 
+    public class LlmUnavailableException : Exception {
+        public LlmUnavailableException(string message) : base(message) { }
+    }
+
 }

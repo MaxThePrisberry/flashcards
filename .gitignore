@@ -4,6 +4,9 @@ node_modules/
 out/
 npm-debug.log*
 
+# Typescript
+*.tsbuildinfo
+
 # .NET
 bin/
 obj/

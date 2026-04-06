@@ -119,3 +119,45 @@ public class PaginatedDeckListDto
     [JsonPropertyName("totalPages")]
     public int TotalPages { get; set; }
 }
+
+public class TestResponseDto
+{
+    [JsonPropertyName("deckId")]
+    public string DeckId { get; set; } = "";
+
+    [JsonPropertyName("deckTitle")]
+    public string DeckTitle { get; set; } = "";
+
+    [JsonPropertyName("questionCount")]
+    public int QuestionCount { get; set; }
+
+    [JsonPropertyName("questions")]
+    public List<TestQuestionDto> Questions { get; set; } = new();
+}
+
+public class TestQuestionDto
+{
+    [JsonPropertyName("cardId")]
+    public string CardId { get; set; } = "";
+
+    [JsonPropertyName("direction")]
+    public string Direction { get; set; } = "";
+
+    [JsonPropertyName("prompt")]
+    public string Prompt { get; set; } = "";
+
+    [JsonPropertyName("options")]
+    public List<TestOptionDto> Options { get; set; } = new();
+
+    [JsonPropertyName("correctOptionIndex")]
+    public int CorrectOptionIndex { get; set; }
+}
+
+public class TestOptionDto
+{
+    [JsonPropertyName("index")]
+    public int Index { get; set; }
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = "";
+}

@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Pair> Pairs { get; set; }
     public DbSet<ReviewHistory> ReviewHistories { get; set; }
     public DbSet<ReviewPair> ReviewPairs { get; set; }
+    public DbSet<Distractor> Distractors { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +24,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Pair>().ToTable("Pair");
         modelBuilder.Entity<ReviewHistory>().ToTable("ReviewHistory");
         modelBuilder.Entity<ReviewPair>().ToTable("ReviewPair");
+        modelBuilder.Entity<Distractor>().ToTable("Distractor");
 
         // ---- User ----
         modelBuilder.Entity<User>(entity =>
@@ -159,6 +161,26 @@ public class AppDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(rp => rp.PairId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ---- Distractor ----
+        modelBuilder.Entity<Distractor>(entity =>
+        {
+            entity.HasKey(d => d.DistractorId);
+            entity.Property(d => d.DistractorId).HasColumnName("distractor_id");
+            entity.Property(d => d.PairId).HasColumnName("pair_id");
+            entity.Property(d => d.Direction).HasColumnName("direction");
+            entity.Property(d => d.Value).HasColumnName("value").IsRequired();
+            entity.Property(d => d.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").HasDefaultValueSql("NOW()");
+
+            entity.HasOne(d => d.Pair)
+                  .WithMany()
+                  .HasForeignKey(d => d.PairId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(d => new { d.PairId, d.Direction, d.Value })
+                  .IsUnique()
+                  .HasDatabaseName("uq_distractor_pair_direction_value");
         });
     }
 }
