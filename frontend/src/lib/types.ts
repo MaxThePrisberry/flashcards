@@ -72,6 +72,8 @@ export interface UpdateCardRequest {
   definition: string;
 }
 
+// --- Study Sessions ---
+
 export interface SubmitReviewRequest {
   needsReview: string[];
 }

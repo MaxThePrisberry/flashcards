@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { use, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Brain, Layers3 } from "lucide-react";
-import { getDeck } from "@/lib/api/decks";
-import { useRequireAuth } from "@/hooks/use-require-auth";
+import { ArrowRight, Brain, Clock3, Layers3, RefreshCcw } from "lucide-react";
+import { getDeck, getLatestReview } from "@/lib/api/decks";
 import { ApiError } from "@/lib/api/api-client";
-import type { DeckDetailDto } from "@/lib/types";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import type { DeckDetailDto, ReviewSessionDto } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,6 +16,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+function formatReviewedAt(value: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export default function DeckDetailPage({
   params,
 }: {
@@ -23,7 +30,12 @@ export default function DeckDetailPage({
 }) {
   const { id } = use(params);
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
+
   const [deck, setDeck] = useState<DeckDetailDto | null>(null);
+  const [latestReview, setLatestReview] = useState<ReviewSessionDto | null>(
+    null,
+  );
+  const [historyUnavailable, setHistoryUnavailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,17 +46,44 @@ export default function DeckDetailPage({
 
     async function load() {
       try {
-        const data = await getDeck(id, controller.signal);
-        setDeck(data);
+        const deckData = await getDeck(id, controller.signal);
+        setDeck(deckData);
+
+        try {
+          const reviewData = await getLatestReview(id, controller.signal);
+          setLatestReview(reviewData);
+          setHistoryUnavailable(false);
+        } catch (reviewError) {
+          if (
+            reviewError instanceof DOMException &&
+            reviewError.name === "AbortError"
+          ) {
+            return;
+          }
+
+          if (
+            reviewError instanceof ApiError &&
+            reviewError.status === 404
+          ) {
+            setLatestReview(null);
+            setHistoryUnavailable(false);
+          } else {
+            setLatestReview(null);
+            setHistoryUnavailable(true);
+          }
+        }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         setError(err instanceof ApiError ? err.message : "Failed to load deck");
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
-    load();
+    void load();
+
     return () => {
       controller.abort();
     };
@@ -54,6 +93,9 @@ export default function DeckDetailPage({
     () => [...(deck?.cards ?? [])].sort((a, b) => a.position - b.position),
     [deck?.cards],
   );
+
+  const cardsNeedingReview = latestReview?.reviewCards.length ?? 0;
+  const confidentCards = Math.max(orderedCards.length - cardsNeedingReview, 0);
 
   if (authLoading || loading) {
     return <main className="p-10">Loading deck...</main>;
@@ -99,6 +141,114 @@ export default function DeckDetailPage({
           </div>
         </CardHeader>
       </Card>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Latest study progress</h2>
+          <p className="text-sm text-muted-foreground">
+            This comes from the most recent saved study session for this deck.
+          </p>
+        </div>
+
+        {latestReview ? (
+          <>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card className="border-border/70 bg-card/70">
+                <CardHeader className="gap-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock3 className="h-4 w-4" />
+                    <span>Last reviewed</span>
+                  </div>
+                  <CardTitle className="text-xl">
+                    {formatReviewedAt(latestReview.reviewedAt)}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-border/70 bg-card/70">
+                <CardHeader className="gap-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <RefreshCcw className="h-4 w-4" />
+                    <span>Need more review</span>
+                  </div>
+                  <CardTitle className="text-xl">
+                    {cardsNeedingReview} card
+                    {cardsNeedingReview === 1 ? "" : "s"}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-border/70 bg-card/70">
+                <CardHeader className="gap-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Brain className="h-4 w-4" />
+                    <span>Confident cards</span>
+                  </div>
+                  <CardTitle className="text-xl">
+                    {confidentCards} card{confidentCards === 1 ? "" : "s"}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+
+            <Card className="border-border/70 bg-card/70">
+              <CardHeader>
+                <CardTitle className="text-lg">Cards to revisit</CardTitle>
+                <CardDescription>
+                  {latestReview.reviewCards.length === 0
+                    ? "You got everything right in the latest saved session."
+                    : "These were marked for more review in the latest saved session."}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent>
+                {latestReview.reviewCards.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No cards need extra review right now.
+                  </p>
+                ) : (
+                  <>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {latestReview.reviewCards.slice(0, 6).map((card) => (
+                        <Card key={card.id} className="bg-background/60">
+                          <CardHeader className="gap-2">
+                            <CardTitle className="text-base">
+                              {card.term}
+                            </CardTitle>
+                            <CardDescription className="line-clamp-2 text-sm leading-6 text-foreground/80">
+                              {card.definition}
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {latestReview.reviewCards.length > 6 ? (
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        And {latestReview.reviewCards.length - 6} more card
+                        {latestReview.reviewCards.length - 6 === 1 ? "" : "s"}.
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        ) : historyUnavailable ? (
+          <Card className="border-border/70 bg-card/70">
+            <CardContent className="py-10 text-center text-muted-foreground">
+              Study history is unavailable right now.
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-border/70 bg-card/70">
+            <CardContent className="py-10 text-center text-muted-foreground">
+              No study history yet. Finish one study session to see saved
+              progress here.
+            </CardContent>
+          </Card>
+        )}
+      </section>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">

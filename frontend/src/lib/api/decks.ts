@@ -68,3 +68,11 @@ export async function submitDeckReview(
 
   return res.json();
 }
+
+export async function getLatestReview(
+  id: string,
+  signal?: AbortSignal,
+): Promise<ReviewSessionDto> {
+  const res = await apiFetch(`/api/decks/${id}/reviews/latest`, { signal });
+  return res.json();
+}
