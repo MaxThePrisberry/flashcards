@@ -72,6 +72,7 @@ export default function TestDeckPage({
 
     return () => {
       controller.abort();
+      retakeControllerRef.current?.abort();
       if (transitionTimeoutRef.current !== null)
         window.clearTimeout(transitionTimeoutRef.current);
       if (enterFrameRef.current !== null)
@@ -97,8 +98,8 @@ export default function TestDeckPage({
     if (!completed || reviewSubmitted || !test) return;
 
     setReviewSubmitted(true);
-    submitDeckReview(test.deckId, { needsReview: wrongCardIds }).catch(() => {
-      // Silent failure — review submission is best-effort
+    submitDeckReview(test.deckId, { needsReview: wrongCardIds }).catch((err) => {
+      console.warn("Failed to submit test review:", err);
     });
   }, [completed, reviewSubmitted, test, wrongCardIds]);
 
@@ -163,11 +164,16 @@ export default function TestDeckPage({
     totalQuestions,
   ]);
 
+  const retakeControllerRef = useRef<AbortController | null>(null);
+
   const handleRetake = useCallback(async () => {
+    retakeControllerRef.current?.abort();
+    const controller = new AbortController();
+    retakeControllerRef.current = controller;
     reset();
     setReviewSubmitted(false);
     setTest(null);
-    await loadTest();
+    await loadTest(controller.signal);
   }, [loadTest, reset]);
 
   if (authLoading || loading) {

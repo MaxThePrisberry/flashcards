@@ -254,4 +254,52 @@ public class TestGenerateTests
         body.Questions.Should().HaveCount(1);
         body.Questions[0].Options.Should().HaveCount(4);
     }
+
+    [Fact]
+    public async Task GenerateTest_DistractorsDoNotContainCorrectAnswer()
+    {
+        var token = await TestHelper.GetTokenAsync(_client);
+        var deck = await TestHelper.CreateDeckAsync(_client, token, "Distractor Check", "desc",
+            new List<object>
+            {
+                new { term = "Apple", definition = "A fruit" },
+                new { term = "Banana", definition = "A yellow fruit" },
+                new { term = "Cherry", definition = "A small red fruit" },
+                new { term = "Date", definition = "A sweet brown fruit" }
+            });
+
+        var request = TestHelper.AuthRequest(HttpMethod.Post, $"/api/decks/{deck.Id}/test", token);
+        var response = await _client.SendAsync(request);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await TestHelper.ReadAsync<TestResponseDto>(response);
+        body.Questions.Should().HaveCount(4);
+
+        foreach (var question in body.Questions)
+        {
+            var correctText = question.Options[question.CorrectOptionIndex].Text;
+            var distractorTexts = question.Options
+                .Where((_, idx) => idx != question.CorrectOptionIndex)
+                .Select(o => o.Text)
+                .ToList();
+
+            // No distractor should duplicate the correct answer
+            distractorTexts.Should().NotContain(correctText);
+
+            // All distractors should be unique
+            distractorTexts.Should().OnlyHaveUniqueItems();
+        }
+    }
+
+    [Fact]
+    public async Task GenerateTest_InvalidDeckIdFormat_Returns404()
+    {
+        var token = await TestHelper.GetTokenAsync(_client);
+        var request = TestHelper.AuthRequest(HttpMethod.Post, "/api/decks/not-a-uuid/test", token);
+
+        var response = await _client.SendAsync(request);
+
+        // Non-UUID should not match the route or should return 404
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.BadRequest);
+    }
 }

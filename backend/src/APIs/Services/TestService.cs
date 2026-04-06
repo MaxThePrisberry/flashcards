@@ -133,7 +133,7 @@ namespace Flashcards.APIs.Services.Tests {
                 try {
                     _dbContext.Distractors.AddRange(newDistractors);
                     await _dbContext.SaveChangesAsync();
-                } catch (DbUpdateException) {
+                } catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException pg && pg.SqlState == "23505") {
                     // Unique constraint violation from concurrent generation — safe to ignore.
                     // The distractors are already in distractorsByPair for building the test.
                     _dbContext.ChangeTracker.Clear();
