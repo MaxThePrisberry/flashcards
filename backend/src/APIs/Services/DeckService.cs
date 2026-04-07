@@ -79,7 +79,7 @@ namespace Flashcards.APIs.Services.Decks {
                     .ThenInclude(p => p.Item1)
                 .Include(d => d.Pairs)
                     .ThenInclude(p => p.Item2)
-                .FirstOrDefaultAsync(d => d.DeckId == deckId && d.UserId == userId);
+                .FirstOrDefaultAsync(d => d.DeckId == deckId && (d.UserId == userId || d.IsPublic));
 
             if (deck == null) {
                 throw new NotFoundException("Deck not found.");
