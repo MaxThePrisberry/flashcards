@@ -6,6 +6,7 @@ using Flashcards.APIs.Services.Auth;
 using Flashcards.APIs.Services.Reviews;
 using Flashcards.APIs.Services.Tests;
 using Flashcards.APIs.Services.Gemini;
+using Flashcards.APIs.Services.Likes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -80,6 +81,7 @@ builder.Services.AddHttpClient<GeminiService>(client => {
 });
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<TestService>();
+builder.Services.AddScoped<LikeService>();
 var corsOrigin = builder.Configuration["Cors:AllowedOrigin"] ?? "http://localhost:3000";
 builder.Services.AddCors(options =>
 {

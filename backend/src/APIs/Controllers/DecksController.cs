@@ -7,6 +7,7 @@ using Flashcards.APIs.Services.Decks;
 using Flashcards.APIs.Services.Reviews;
 using Flashcards.APIs.Services.Tests;
 using Flashcards.APIs.DTOs.Test;
+using Flashcards.APIs.Services.Likes;
 using Flashcards.APIs.Exceptions;
 using System.Security.Claims;
 
@@ -18,11 +19,13 @@ namespace Flashcards.APIs.Controllers {
         private readonly DeckService _deckService;
         private readonly ReviewService _reviewService;
         private readonly TestService _testService;
+        private readonly LikeService _likeService;
 
-        public DecksController(DeckService deckService, ReviewService reviewService, TestService testService) {
+        public DecksController(DeckService deckService, ReviewService reviewService, TestService testService, LikeService likeService) {
             _deckService = deckService;
             _reviewService = reviewService;
             _testService = testService;
+            _likeService = likeService;
         }
 
         [HttpGet]
@@ -82,6 +85,33 @@ namespace Flashcards.APIs.Controllers {
             var userId = GetUserId();
             var result = await _reviewService.GetLatestReviewAsync(id, userId);
             return Ok(result);
+        }
+
+        [HttpPost("{id}/like")]
+        public async Task<IActionResult> LikeDeck(Guid id) {
+            var userId = GetUserId();
+            await _likeService.LikeDeckAsync(id, userId);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}/like")]
+        public async Task<IActionResult> UnlikeDeck(Guid id) {
+            var userId = GetUserId();
+            await _likeService.UnlikeDeckAsync(id, userId);
+            return NoContent();
+        }
+
+        [HttpGet("{id}/likes/count")]
+        public async Task<ActionResult<int>> GetLikeCount(Guid id) {
+            var count = await _likeService.GetLikeCountAsync(id);
+            return Ok(new { count });
+        }
+
+        [HttpGet("{id}/likes/status")]
+        public async Task<ActionResult<bool>> GetLikeStatus(Guid id) {
+            var userId = GetUserId();
+            var isLiked = await _likeService.HasUserLikedDeckAsync(id, userId);
+            return Ok(new { isLiked });
         }
 
         private Guid GetUserId() {
