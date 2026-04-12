@@ -75,7 +75,7 @@ export default function StudyCard({
               </div>
 
               <div className="text-center text-sm text-muted-foreground">
-                Choose how well you knew it to continue
+                Choose Got it or Needs review to continue
               </div>
             </div>
           </div>

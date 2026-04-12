@@ -72,6 +72,41 @@ export interface UpdateCardRequest {
   definition: string;
 }
 
+// --- Tests ---
+
+export interface TestResponse {
+  deckId: string;
+  deckTitle: string;
+  questionCount: number;
+  questions: TestQuestionDto[];
+}
+
+export interface TestQuestionDto {
+  cardId: string;
+  direction: "term_to_definition" | "definition_to_term";
+  prompt: string;
+  options: TestOptionDto[];
+  correctOptionIndex: number;
+}
+
+export interface TestOptionDto {
+  index: number;
+  text: string;
+}
+
+// --- Study Sessions ---
+
+export interface SubmitReviewRequest {
+  needsReview: string[];
+}
+
+export interface ReviewSessionDto {
+  sessionId: string;
+  deckId: string;
+  reviewedAt: string;
+  reviewCards: CardDto[];
+}
+
 // --- Pagination ---
 
 export interface PaginatedResponse<T> {

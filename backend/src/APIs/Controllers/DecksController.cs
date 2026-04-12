@@ -5,6 +5,8 @@ using Flashcards.APIs.DTOs.Decks;
 using Flashcards.APIs.Responses;
 using Flashcards.APIs.Services.Decks;
 using Flashcards.APIs.Services.Reviews;
+using Flashcards.APIs.Services.Tests;
+using Flashcards.APIs.DTOs.Test;
 using Flashcards.APIs.Exceptions;
 using System.Security.Claims;
 
@@ -15,10 +17,12 @@ namespace Flashcards.APIs.Controllers {
     public class DecksController : ControllerBase {
         private readonly DeckService _deckService;
         private readonly ReviewService _reviewService;
+        private readonly TestService _testService;
 
-        public DecksController(DeckService deckService, ReviewService reviewService) {
+        public DecksController(DeckService deckService, ReviewService reviewService, TestService testService) {
             _deckService = deckService;
             _reviewService = reviewService;
+            _testService = testService;
         }
 
         [HttpGet]
@@ -64,6 +68,13 @@ namespace Flashcards.APIs.Controllers {
             var userId = GetUserId();
             var result = await _reviewService.SubmitReviewAsync(id, userId, request.NeedsReview);
             return CreatedAtAction(nameof(GetLatestReview), new { id }, result);
+        }
+
+        [HttpPost("{id}/test")]
+        public async Task<ActionResult<TestResponse>> GenerateTest(Guid id) {
+            var userId = GetUserId();
+            var result = await _testService.GenerateTestAsync(id, userId);
+            return Ok(result);
         }
 
         [HttpGet("{id}/reviews/latest")]
