@@ -46,6 +46,7 @@ namespace Flashcards.APIs.Services.Decks {
                     d.Title,
                     d.Description,
                     d.Pairs.Count,
+                    d.Likes.Count,
                     d.CreatedAt,
                     d.UpdatedAt
                 ))

@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<ReviewHistory> ReviewHistories { get; set; }
     public DbSet<ReviewPair> ReviewPairs { get; set; }
     public DbSet<Distractor> Distractors { get; set; }
+    public DbSet<Like> Likes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ReviewHistory>().ToTable("ReviewHistory");
         modelBuilder.Entity<ReviewPair>().ToTable("ReviewPair");
         modelBuilder.Entity<Distractor>().ToTable("Distractor");
+        modelBuilder.Entity<Like>().ToTable("Likes");
 
         // ---- User ----
         modelBuilder.Entity<User>(entity =>
@@ -161,6 +163,28 @@ public class AppDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(rp => rp.PairId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ---- Like ----
+        modelBuilder.Entity<Like>(entity =>
+        {
+            entity.HasKey(l => l.LikeId);
+            entity.Property(l => l.LikeId).HasColumnName("like_id");
+            entity.Property(l => l.UserId).HasColumnName("user_id");
+            entity.Property(l => l.DeckId).HasColumnName("deck_id");
+
+            entity.HasOne(l => l.User)
+                  .WithMany()
+                  .HasForeignKey(l => l.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(l => l.Deck)
+                  .WithMany(d => d.Likes)
+                  .HasForeignKey(l => l.DeckId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // Ensure a user can only like a deck once
+            entity.HasIndex(l => new { l.UserId, l.DeckId }).IsUnique();
         });
 
         // ---- Distractor ----

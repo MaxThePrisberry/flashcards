@@ -37,5 +37,6 @@ namespace Flashcards.APIs.Entities
 
         public ICollection<Item> Items { get; set; } = new List<Item>();
         public ICollection<Pair> Pairs { get; set; } = new List<Pair>();
+        public ICollection<Like> Likes { get; set; } = new List<Like>();
     }
 }
