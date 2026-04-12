@@ -118,14 +118,16 @@ namespace Flashcards.APIs.Services.Reviews {
             var cards = await _dbContext.Pairs
                 .AsNoTracking()
                 .Where(p => p.DeckId == deckId && cardIds.Contains(p.PairId))
-                .Include(p => p.Item1)
-                .Include(p => p.Item2)
+                .Include(p => p.Item1).ThenInclude(i => i.Type)
+                .Include(p => p.Item2).ThenInclude(i => i.Type)
                 .OrderBy(p => p.Position)
                 .Select(p => new CardDTO(
                     p.PairId,
                     p.Item1.Value,
                     p.Item2.Value,
-                    p.Position
+                    p.Position,
+                    p.Item1.Type.TypeName,
+                    p.Item2.Type.TypeName
                 ))
                 .ToListAsync();
 

@@ -78,8 +78,10 @@ namespace Flashcards.APIs.Services.Decks {
                 .AsNoTracking()
                 .Include(d => d.Pairs.OrderBy(p => p.Position))
                     .ThenInclude(p => p.Item1)
+                        .ThenInclude(i => i.Type)
                 .Include(d => d.Pairs)
                     .ThenInclude(p => p.Item2)
+                        .ThenInclude(i => i.Type)
                 .FirstOrDefaultAsync(d => d.DeckId == deckId && (d.UserId == userId || d.IsPublic));
 
             if (deck == null) {
@@ -90,7 +92,9 @@ namespace Flashcards.APIs.Services.Decks {
                 p.PairId,
                 p.Item1.Value,
                 p.Item2.Value,
-                p.Position
+                p.Position,
+                p.Item1.Type.TypeName,
+                p.Item2.Type.TypeName
             )).ToList();
 
             return ToDeckDetailDTO(deck, cardDtos);
@@ -168,10 +172,17 @@ namespace Flashcards.APIs.Services.Decks {
             var cardDtos = new List<CardDTO>(cards.Count);
 
             for (int i = 0; i < cards.Count; i++) {
+                var termTypeId = cards[i].TermType == CardType.ImageTypeName
+                    ? CardType.ImageTypeId
+                    : CardType.TextTypeId;
+                var defTypeId = cards[i].DefinitionType == CardType.ImageTypeName
+                    ? CardType.ImageTypeId
+                    : CardType.TextTypeId;
+
                 var termItem = new Item {
                     ItemId = Guid.NewGuid(),
                     DeckId = deckId,
-                    TypeId = CardType.TextTypeId,
+                    TypeId = termTypeId,
                     Value = cards[i].Term,
                     Position = i
                 };
@@ -179,7 +190,7 @@ namespace Flashcards.APIs.Services.Decks {
                 var defItem = new Item {
                     ItemId = Guid.NewGuid(),
                     DeckId = deckId,
-                    TypeId = CardType.TextTypeId,
+                    TypeId = defTypeId,
                     Value = cards[i].Definition,
                     Position = i
                 };
@@ -196,7 +207,7 @@ namespace Flashcards.APIs.Services.Decks {
                 items.Add(termItem);
                 items.Add(defItem);
                 pairs.Add(pair);
-                cardDtos.Add(new CardDTO(pairId, cards[i].Term, cards[i].Definition, i));
+                cardDtos.Add(new CardDTO(pairId, cards[i].Term, cards[i].Definition, i, cards[i].TermType, cards[i].DefinitionType));
             }
 
             return (items, pairs, cardDtos);

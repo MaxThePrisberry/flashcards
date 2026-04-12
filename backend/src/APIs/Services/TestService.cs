@@ -41,6 +41,15 @@ namespace Flashcards.APIs.Services.Tests {
                 throw new ValidationException("Deck has no cards to generate a test from.");
             }
 
+            // Exclude cards with image content — LLM distractors don't work with base64 images
+            pairs = pairs
+                .Where(p => p.Item1.TypeId != CardType.ImageTypeId && p.Item2.TypeId != CardType.ImageTypeId)
+                .ToList();
+
+            if (pairs.Count == 0) {
+                throw new ValidationException("No text-based cards available to generate a test from.");
+            }
+
             // Check distractor cache (expire after 24 hours)
             var pairIds = pairs.Select(p => p.PairId).ToList();
             var cacheExpiry = DateTime.UtcNow.AddHours(-24);

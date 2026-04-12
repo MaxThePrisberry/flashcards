@@ -49,9 +49,14 @@ export default function StudyCard({
               </div>
 
               <div className="flex flex-1 items-center justify-center">
-                <p className="max-w-2xl text-center text-3xl font-semibold leading-tight md:text-5xl">
-                  {card.term}
-                </p>
+                {card.termType === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={card.term} alt="Term" className="max-h-56 max-w-full rounded object-contain" />
+                ) : (
+                  <p className="max-w-2xl text-center text-3xl font-semibold leading-tight md:text-5xl">
+                    {card.term}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -69,9 +74,14 @@ export default function StudyCard({
               </div>
 
               <div className="flex flex-1 items-center justify-center">
-                <p className="max-w-2xl text-center text-2xl leading-relaxed text-foreground/90 md:text-4xl">
-                  {card.definition}
-                </p>
+                {card.definitionType === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={card.definition} alt="Definition" className="max-h-56 max-w-full rounded object-contain" />
+                ) : (
+                  <p className="max-w-2xl text-center text-2xl leading-relaxed text-foreground/90 md:text-4xl">
+                    {card.definition}
+                  </p>
+                )}
               </div>
 
               <div className="text-center text-sm text-muted-foreground">
