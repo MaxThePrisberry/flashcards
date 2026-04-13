@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getDeck, updateDeck } from "@/lib/api/decks";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useAuth } from "@/components/auth-provider";
 import { ApiError } from "@/lib/api/api-client";
 import DeckForm from "@/components/deck-form";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default function EditDeckPage({
   const { id } = use(params);
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
+  const { user, isLoading: userLoading } = useAuth();
 
   const [deck, setDeck] = useState<DeckDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ export default function EditDeckPage({
     }
   }
 
-  if (authLoading || loading) {
+  if (authLoading || userLoading || loading) {
     return <main className="p-10">Loading deck...</main>;
   }
 
@@ -79,6 +81,14 @@ export default function EditDeckPage({
 
   if (!deck) {
     return <main className="p-10">Deck not found</main>;
+  }
+
+  if (user?.id !== deck.ownerId) {
+    return (
+      <main className="p-10 text-destructive">
+        You can only edit your own decks.
+      </main>
+    );
   }
 
   return (

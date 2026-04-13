@@ -37,6 +37,7 @@ export interface DeckSummaryDto {
 
 export interface DeckDetailDto {
   id: string;
+  ownerId: string;
   title: string;
   description: string;
   isPublic: boolean;

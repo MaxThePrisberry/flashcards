@@ -218,6 +218,7 @@ namespace Flashcards.APIs.Services.Decks {
         private static DeckDetailDTO ToDeckDetailDTO(Deck deck, List<CardDTO> cards) {
             return new DeckDetailDTO(
                 deck.DeckId,
+                deck.UserId,
                 deck.Title,
                 deck.Description,
                 deck.IsPublic,

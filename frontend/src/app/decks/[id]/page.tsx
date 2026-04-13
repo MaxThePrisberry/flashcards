@@ -6,6 +6,7 @@ import { ArrowRight, Brain, ClipboardCheck, Clock3, Layers3, RefreshCcw } from "
 import { getDeck, getLatestReview } from "@/lib/api/decks";
 import { ApiError } from "@/lib/api/api-client";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useAuth } from "@/components/auth-provider";
 import type { DeckDetailDto, ReviewSessionDto } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ export default function DeckDetailPage({
 }) {
   const { id } = use(params);
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
+  const { user } = useAuth();
 
   const [deck, setDeck] = useState<DeckDetailDto | null>(null);
   const [latestReview, setLatestReview] = useState<ReviewSessionDto | null>(
@@ -109,6 +111,8 @@ export default function DeckDetailPage({
     return <main className="p-10">Deck not found</main>;
   }
 
+  const isOwner = user?.id === deck.ownerId;
+
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
       <Card className="border-border/70 bg-card/80">
@@ -128,16 +132,20 @@ export default function DeckDetailPage({
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
-            <Button asChild variant="outline">
-              <Link href={`/decks/${deck.id}/edit`}>Edit Deck</Link>
-            </Button>
+            {isOwner ? (
+              <>
+                <Button asChild variant="outline">
+                  <Link href={`/decks/${deck.id}/edit`}>Edit Deck</Link>
+                </Button>
 
-            <Button asChild variant="secondary" className="gap-2">
-              <Link href={`/decks/${deck.id}/test`}>
-                <ClipboardCheck className="h-4 w-4" />
-                Take Test
-              </Link>
-            </Button>
+                <Button asChild variant="secondary" className="gap-2">
+                  <Link href={`/decks/${deck.id}/test`}>
+                    <ClipboardCheck className="h-4 w-4" />
+                    Take Test
+                  </Link>
+                </Button>
+              </>
+            ) : null}
 
             <Button asChild size="lg" className="gap-2">
               <Link href={`/decks/${deck.id}/study`}>
