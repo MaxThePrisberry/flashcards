@@ -21,7 +21,13 @@ type CardInput = {
 export type DeckFormData = {
   title: string;
   description: string;
-  cards: { term: string; definition: string; termType: string; definitionType: string }[];
+  isPublic: boolean;
+  cards: {
+    term: string;
+    definition: string;
+    termType: string;
+    definitionType: string;
+  }[];
 };
 
 interface DeckFormProps {
@@ -31,7 +37,13 @@ interface DeckFormProps {
   initialData?: {
     title: string;
     description: string;
-    cards: { term: string; definition: string; termType?: string; definitionType?: string }[];
+    isPublic?: boolean;
+    cards: {
+      term: string;
+      definition: string;
+      termType?: string;
+      definitionType?: string;
+    }[];
   };
   fieldErrors?: Record<string, string[]>;
   onSubmit: (data: DeckFormData) => Promise<void>;
@@ -53,11 +65,28 @@ interface CardFieldProps {
   value: string;
   type: ItemType;
   disabled: boolean;
-  onTypeChange: (id: number, field: "term" | "definition", type: ItemType) => void;
-  onValueChange: (id: number, field: "term" | "definition", value: string) => void;
+  onTypeChange: (
+    id: number,
+    field: "term" | "definition",
+    type: ItemType,
+  ) => void;
+  onValueChange: (
+    id: number,
+    field: "term" | "definition",
+    value: string,
+  ) => void;
 }
 
-function CardField({ label, cardId, field, value, type, disabled, onTypeChange, onValueChange }: CardFieldProps) {
+function CardField({
+  label,
+  cardId,
+  field,
+  value,
+  type,
+  disabled,
+  onTypeChange,
+  onValueChange,
+}: CardFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -133,14 +162,20 @@ function CardField({ label, cardId, field, value, type, disabled, onTypeChange, 
               type="button"
               disabled={disabled}
               onClick={() => fileInputRef.current?.click()}
-              className="flex h-20 w-full items-center justify-center gap-2 rounded border border-dashed border-border text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition"
+              className="flex h-20 w-full items-center justify-center gap-2 rounded border border-dashed border-border text-sm text-muted-foreground transition hover:border-foreground/40 hover:text-foreground"
             >
               <ImageIcon className="h-4 w-4" />
               Upload image
             </button>
           )}
-          {/* hidden required sentinel so form validation fires when image is missing */}
-          <input type="text" value={value} required readOnly className="sr-only" aria-hidden />
+          <input
+            type="text"
+            value={value}
+            required
+            readOnly
+            className="sr-only"
+            aria-hidden
+          />
         </div>
       )}
     </div>
@@ -158,22 +193,37 @@ export default function DeckForm({
   const nextId = useRef(initialData?.cards.length ?? 1);
 
   const [deckTitle, setDeckTitle] = useState(initialData?.title ?? "");
-  const [description, setDescription] = useState(initialData?.description ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
+  const [isPublic, setIsPublic] = useState(initialData?.isPublic ?? false);
   const [cards, setCards] = useState<CardInput[]>(
     initialData?.cards.map((c, i) => ({
       id: i,
       term: c.term,
       definition: c.definition,
       termType: (c.termType === "image" ? "image" : "text") as ItemType,
-      definitionType: (c.definitionType === "image" ? "image" : "text") as ItemType,
-    })) ?? [{ id: 0, term: "", definition: "", termType: "text", definitionType: "text" }],
+      definitionType: (c.definitionType === "image"
+        ? "image"
+        : "text") as ItemType,
+    })) ?? [
+      {
+        id: 0,
+        term: "",
+        definition: "",
+        termType: "text",
+        definitionType: "text",
+      },
+    ],
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateCardValue = useCallback(
     (id: number, field: "term" | "definition", value: string) => {
       setCards((prev) =>
-        prev.map((card) => (card.id === id ? { ...card, [field]: value } : card)),
+        prev.map((card) =>
+          card.id === id ? { ...card, [field]: value } : card,
+        ),
       );
     },
     [],
@@ -194,7 +244,13 @@ export default function DeckForm({
   function addCard() {
     setCards((prev) => [
       ...prev,
-      { id: nextId.current++, term: "", definition: "", termType: "text", definitionType: "text" },
+      {
+        id: nextId.current++,
+        term: "",
+        definition: "",
+        termType: "text",
+        definitionType: "text",
+      },
     ]);
   }
 
@@ -212,6 +268,7 @@ export default function DeckForm({
       await onSubmit({
         title: deckTitle,
         description,
+        isPublic,
         cards: cards.map(({ term, definition, termType, definitionType }) => ({
           term,
           definition,
@@ -260,19 +317,49 @@ export default function DeckForm({
               rows={3}
             />
             {fieldError("description") && (
-              <p className="text-sm text-destructive">{fieldError("description")}</p>
+              <p className="text-sm text-destructive">
+                {fieldError("description")}
+              </p>
             )}
           </div>
 
+          <div className="flex flex-col gap-2">
+            <Label>Visibility</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={!isPublic ? "default" : "outline"}
+                disabled={isSubmitting}
+                onClick={() => setIsPublic(false)}
+              >
+                Private
+              </Button>
+              <Button
+                type="button"
+                variant={isPublic ? "default" : "outline"}
+                disabled={isSubmitting}
+                onClick={() => setIsPublic(true)}
+              >
+                Public
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Public decks can appear in search results for other users.
+            </p>
+          </div>
+
           {cards.map((card, i) => (
-            <div key={card.id} className="relative flex flex-col gap-3 border p-4 rounded-lg">
+            <div
+              key={card.id}
+              className="relative flex flex-col gap-3 rounded-lg border p-4"
+            >
               {cards.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeCard(card.id)}
                   disabled={isSubmitting}
                   aria-label={`Remove card ${i + 1}`}
-                  className="absolute top-2 right-2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition disabled:opacity-50"
+                  className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -306,7 +393,12 @@ export default function DeckForm({
             <p className="text-sm text-destructive">{fieldError("cards")}</p>
           )}
 
-          <Button type="button" variant="outline" onClick={addCard} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addCard}
+            disabled={isSubmitting}
+          >
             Add Card
           </Button>
 

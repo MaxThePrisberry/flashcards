@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getDeck, updateDeck } from "@/lib/api/decks";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useAuth } from "@/components/auth-provider";
 import { ApiError } from "@/lib/api/api-client";
 import DeckForm from "@/components/deck-form";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default function EditDeckPage({
   const { id } = use(params);
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
+  const { user, isLoading: userLoading } = useAuth();
 
   const [deck, setDeck] = useState<DeckDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ export default function EditDeckPage({
       }
     }
 
-    loadDeck();
+    void loadDeck();
 
     return () => controller.abort();
   }, [id, isAuthenticated]);
@@ -49,7 +51,13 @@ export default function EditDeckPage({
   async function handleSubmit(data: {
     title: string;
     description: string;
-    cards: { term: string; definition: string; termType: string; definitionType: string }[];
+    isPublic: boolean;
+    cards: {
+      term: string;
+      definition: string;
+      termType: string;
+      definitionType: string;
+    }[];
   }) {
     try {
       await updateDeck(id, data);
@@ -63,7 +71,7 @@ export default function EditDeckPage({
     }
   }
 
-  if (authLoading || loading) {
+  if (authLoading || userLoading || loading) {
     return <main className="p-10">Loading deck...</main>;
   }
 
@@ -75,8 +83,16 @@ export default function EditDeckPage({
     return <main className="p-10">Deck not found</main>;
   }
 
+  if (user?.id !== deck.ownerId) {
+    return (
+      <main className="p-10 text-destructive">
+        You can only edit your own decks.
+      </main>
+    );
+  }
+
   return (
-    <main className="max-w-3xl mx-auto p-6 space-y-6">
+    <main className="mx-auto max-w-3xl space-y-6 p-6">
       <Button variant="ghost" asChild className="gap-2">
         <Link href={`/decks/${deck.id}`}>
           <ArrowLeft className="h-4 w-4" />
@@ -91,6 +107,7 @@ export default function EditDeckPage({
         initialData={{
           title: deck.title,
           description: deck.description,
+          isPublic: deck.isPublic,
           cards: deck.cards.map((c) => ({
             term: c.term,
             definition: c.definition,

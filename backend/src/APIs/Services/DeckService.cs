@@ -60,7 +60,8 @@ namespace Flashcards.APIs.Services.Decks {
                 DeckId = Guid.NewGuid(),
                 UserId = userId,
                 Title = request.Title,
-                Description = request.Description ?? ""
+                Description = request.Description ?? "",
+                IsPublic = request.IsPublic
             };
 
             var (items, pairs, cardDtos) = BuildCardEntities(deck.DeckId, request.Cards);
@@ -131,6 +132,7 @@ namespace Flashcards.APIs.Services.Decks {
 
             deck.Title = request.Title;
             deck.Description = request.Description;
+            deck.IsPublic = request.IsPublic;
             deck.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.Pairs.Where(p => p.DeckId == deckId).ExecuteDeleteAsync();
@@ -216,8 +218,10 @@ namespace Flashcards.APIs.Services.Decks {
         private static DeckDetailDTO ToDeckDetailDTO(Deck deck, List<CardDTO> cards) {
             return new DeckDetailDTO(
                 deck.DeckId,
+                deck.UserId,
                 deck.Title,
                 deck.Description,
+                deck.IsPublic,
                 cards,
                 deck.CreatedAt,
                 deck.UpdatedAt

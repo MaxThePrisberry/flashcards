@@ -30,14 +30,17 @@ export interface DeckSummaryDto {
   title: string;
   description: string;
   cardCount: number;
+  likeCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface DeckDetailDto {
   id: string;
+  ownerId: string;
   title: string;
   description: string;
+  isPublic: boolean;
   cards: CardDto[];
   createdAt: string;
   updatedAt: string;
@@ -55,6 +58,7 @@ export interface CardDto {
 export interface CreateDeckRequest {
   title: string;
   description?: string;
+  isPublic: boolean;
   cards: CreateCardRequest[];
 }
 
@@ -68,6 +72,7 @@ export interface CreateCardRequest {
 export interface UpdateDeckRequest {
   title: string;
   description: string;
+  isPublic: boolean;
   cards: UpdateCardRequest[];
 }
 
