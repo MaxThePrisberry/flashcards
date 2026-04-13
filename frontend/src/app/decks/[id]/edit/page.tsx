@@ -41,7 +41,7 @@ export default function EditDeckPage({
       }
     }
 
-    loadDeck();
+    void loadDeck();
 
     return () => controller.abort();
   }, [id, isAuthenticated]);
@@ -49,7 +49,13 @@ export default function EditDeckPage({
   async function handleSubmit(data: {
     title: string;
     description: string;
-    cards: { term: string; definition: string; termType: string; definitionType: string }[];
+    isPublic: boolean;
+    cards: {
+      term: string;
+      definition: string;
+      termType: string;
+      definitionType: string;
+    }[];
   }) {
     try {
       await updateDeck(id, data);
@@ -76,7 +82,7 @@ export default function EditDeckPage({
   }
 
   return (
-    <main className="max-w-3xl mx-auto p-6 space-y-6">
+    <main className="mx-auto max-w-3xl space-y-6 p-6">
       <Button variant="ghost" asChild className="gap-2">
         <Link href={`/decks/${deck.id}`}>
           <ArrowLeft className="h-4 w-4" />
@@ -91,6 +97,7 @@ export default function EditDeckPage({
         initialData={{
           title: deck.title,
           description: deck.description,
+          isPublic: deck.isPublic,
           cards: deck.cards.map((c) => ({
             term: c.term,
             definition: c.definition,

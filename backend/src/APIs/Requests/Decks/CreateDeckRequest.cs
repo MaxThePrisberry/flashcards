@@ -10,6 +10,8 @@ namespace Flashcards.APIs.Requests.Decks {
         [MaxLength(1000, ErrorMessage = "Description must not exceed 1000 characters.")]
         string? Description,
 
+        bool IsPublic,
+
         [Required(ErrorMessage = "Cards are required.")]
         [MinLength(1, ErrorMessage = "At least one card is required.")]
         [MaxLength(500, ErrorMessage = "A deck cannot have more than 500 cards.")]
